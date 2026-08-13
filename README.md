@@ -20,11 +20,12 @@ Python standard library only, no network, no model. Prose only, never code.
 
 [Install](#install) &middot; [What it does](#what-it-does) &middot; [Measured](#measured) &middot; [Limits](#what-it-cannot-do) &middot; [Patterns](references/patterns.md) &middot; [Ethics](ETHICS.md)
 
-<sub>This is a command-line tool and an agent plugin. There is no website, no hosted
-version and no account, and nothing you write is ever uploaded. Any site offering a
-service under this name is unrelated to it.</sub>
-
 </div>
+
+> [!IMPORTANT]
+> **This is a command-line tool and an agent plugin. There is no website and no hosted version.**
+> Nothing you write is uploaded, there is no account, and no text ever leaves your machine.
+> Any site offering a service under this name is unrelated to this project.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/demo-dark.svg">
