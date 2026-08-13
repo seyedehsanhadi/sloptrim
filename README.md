@@ -11,12 +11,14 @@
 saves and asks for the flagged spans to be fixed.**
 Python standard library only, no network, no model. Prose only, never code.
 
+[![test](https://github.com/seyedehsanhadi/sloptrim/actions/workflows/test.yml/badge.svg)](https://github.com/seyedehsanhadi/sloptrim/actions/workflows/test.yml)
 [![Version](https://img.shields.io/badge/version-0.9.0-blue)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE.txt)
 [![Dependencies](https://img.shields.io/badge/dependencies-none-blue)](scripts/detect.py)
 [![Tests](https://img.shields.io/badge/tests-146-blue)](tests/)
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue)](scripts/detect.py)
 
-[Install](#install) &middot; [Measured](#measured) &middot; [Limits](#what-it-cannot-do) &middot; [Patterns](references/patterns.md) &middot; [Ethics](ETHICS.md)
+[Install](#install) &middot; [What it does](#what-it-does) &middot; [Measured](#measured) &middot; [Limits](#what-it-cannot-do) &middot; [Patterns](references/patterns.md) &middot; [Ethics](ETHICS.md)
 
 </div>
 

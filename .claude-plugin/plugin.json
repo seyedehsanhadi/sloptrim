@@ -11,9 +11,18 @@
   "keywords": [
     "humanizer",
     "ai-slop",
-    "writing",
     "de-slop",
-    "prose"
+    "prose",
+    "prose-linter",
+    "writing",
+    "writing-quality",
+    "text-analysis",
+    "stylometry",
+    "markdown",
+    "docx",
+    "linter",
+    "zero-dependency",
+    "claude-code"
   ],
   "hooks": {
     "SessionStart": [
