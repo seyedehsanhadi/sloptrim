@@ -152,6 +152,11 @@ echo "$out" | grep -q "no session"; check "stats fails cleanly on a missing tran
 FRESH="$(topath "$(mktemp -d)")"
 out="$(CLAUDE_CONFIG_DIR="$FRESH" node "$REPO/hooks/sloptrim-activate.js" </dev/null)"
 echo "$out" | grep -q "SLOPTRIM ACTIVE - level: full"; check "fresh install: contract on by default, no setup" $?
+echo "$out" | grep -q "sloptrim is installed and on"; check "fresh install: the welcome is shown once" $?
+echo "$out" | grep -q "no website and no hosted version"; check "fresh install: the welcome says there is no hosted version" $?
+again="$(CLAUDE_CONFIG_DIR="$FRESH" node "$REPO/hooks/sloptrim-activate.js" </dev/null)"
+echo "$again" | grep -q "sloptrim is installed and on"; [ $? -ne 0 ]; check "second session: the welcome does not repeat" $?
+echo "$again" | grep -q "SLOPTRIM ACTIVE - level: full"; check "second session: the contract still arrives" $?
 out="$(echo '{"prompt":"/sloptrim doctor"}' | CLAUDE_CONFIG_DIR="$FRESH" node "$REPO/hooks/sloptrim-tracker.js")"
 echo "$out" | grep -q "python runs the detector"; check "fresh install: doctor reports detector health" $?
 echo "$out" | grep -q "All good"; check "fresh install: doctor gives the all-clear" $?
