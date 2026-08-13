@@ -75,7 +75,7 @@ because they are typographic habits.
 | Formats | 20, including `.docx`, `.pptx`, `.xlsx`, OpenDocument, `.epub`, `.ipynb`, LaTeX |
 | Runs in | Claude Code, on save. Other agents via `/sloptrim init`, which writes the contract to `AGENTS.md`, and `.cursor/rules/` |
 | Needs | Node for the hooks, Python 3.9 or newer for the detector, nothing else |
-| Suite | 97 Python tests and 49 hook checks, last run on Windows with Python 3.14 and Node 24 |
+| Suite | 97 Python tests and 49 hook checks, green in CI on Linux, Windows and macOS, against Python 3.9 and 3.13 |
 | Does not see | A file written by a `Bash` command, which reaches disk without passing `Write` or `Edit` |
 
 | Command | Effect |
