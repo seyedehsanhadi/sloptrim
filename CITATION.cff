@@ -1,0 +1,43 @@
+cff-version: 1.2.0
+title: "sloptrim: a deterministic prose-quality detector and always-on writing contract"
+message: "If you use this software or the measurements cited below, please cite it. This is a pre-1.0 release; the interfaces and the score calibration may still change."
+type: software
+authors:
+  - family-names: Hadi
+    given-names: Seyed Ehsan
+repository-code: "https://github.com/seyedehsanhadi/sloptrim"
+license: Apache-2.0
+version: 0.9.0
+date-released: "2026-08-11"
+keywords:
+  - writing quality
+  - text analysis
+  - stylometry
+  - large language models
+  - research software
+abstract: >-
+  sloptrim scores prose against a catalogue of 71 documented patterns of
+  machine-flavoured writing and asks the writer to fix what it flags. 62 of the
+  71 have a detector in scripts/detect.py; the other 9 need a reading. Thirteen
+  of the 62 rules are held out of the score as markers of formal register or of
+  typesetting rather than of machine authorship. They fall on thirteen
+  catalogue numbers, but number 17 keeps a second rule that still scores, so 12
+  numbers carry no weight and 50 still do. The detector is deterministic, uses
+  only the Python standard library, and opens no socket, which a test enforces
+  by walking every script in the repository. It is a writing-quality
+  instrument and not an authorship classifier: the score counts documented
+  patterns and says nothing about who or what wrote the document.
+
+  The figures that follow were measured in a benchmark the author holds
+  privately. Neither that harness nor any corpus is part of this repository and
+  nothing here recomputes them, so they are cited as results obtained
+  elsewhere. On human prose predating any public language model, false
+  positives were 0.00% of 529 PubMed abstracts dated before 2020 and 0.00% of
+  939 arXiv abstracts submitted before 2021. Detection was reported per corpus
+  and never pooled, with the worst corpus as the headline: ROC-AUC 0.669 on
+  MAGE, 0.791 on a RAID arm of 4 generators writing abstracts with adversarial
+  attacks filtered out, and 0.963 separating American textbook prose from
+  Mixtral-8x7B text written to imitate it. Against a current frontier model
+  writing in ordinary registers the figure was 0.551, close to chance, so the
+  instrument should not be read as a test for machine authorship at the
+  current frontier.

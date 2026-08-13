@@ -1,0 +1,62 @@
+{
+  "name": "sloptrim",
+  "version": "0.9.0",
+  "description": "Scores every prose file your agent saves against a catalogue of 71 documented patterns, 62 of them with a detector behind them and 50 able to move the score, and names the ones that fired, so the flagged spans get fixed before the file ships. The 0 to 100 score lands in one of five bands: clean, light tells, mixed, heavy tells, pervasive tells. Every band describes the prose and none of them names an author. Reads 20 formats including .docx and .epub. Deterministic, Python standard library only, no network, no model. Prose only; code, config and commits stay untouched.",
+  "author": {
+    "name": "Seyed Ehsan Hadi",
+    "url": "https://github.com/seyedehsanhadi"
+  },
+  "homepage": "https://github.com/seyedehsanhadi/sloptrim",
+  "license": "Apache-2.0",
+  "keywords": [
+    "humanizer",
+    "ai-slop",
+    "writing",
+    "de-slop",
+    "prose"
+  ],
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/sloptrim-activate.js\""
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/sloptrim-subagent.js\""
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/sloptrim-tracker.js\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/sloptrim-guard.js\""
+          }
+        ]
+      }
+    ]
+  }
+}

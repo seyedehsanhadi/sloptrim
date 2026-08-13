@@ -1,0 +1,26 @@
+# Python caches, virtual envs, editor/OS cruft, secrets, and test artifacts.
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.env
+.env.*
+*.pem
+*.key
+/tmp/
+*.log
+.coverage
+.coverage.*

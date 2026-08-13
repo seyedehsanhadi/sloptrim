@@ -1,0 +1,58 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  suite:
+    name: ${{ matrix.os }} / python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ['3.9', '3.13']
+        exclude:
+          - os: macos-latest
+            python: '3.9'
+    defaults:
+      run:
+        shell: bash
+    env:
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest pyyaml
+
+      - name: Report the toolchain
+        run: |
+          python --version
+          node --version
+          bash --version | head -1
+          python -m pytest --version
+
+      - name: Python suite
+        run: python -m pytest tests/ -q
+
+      - name: Hook suite
+        run: bash tests/test_hooks.sh
+
+      - name: Documentation checks
+        run: python scripts/check_docs.py
