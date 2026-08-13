@@ -14,6 +14,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -206,10 +207,18 @@ def hook_check_count():
 
 def doctor_ok_lines():
     payload = json.dumps({"prompt": "/sloptrim doctor", "session_id": "check_docs"})
-    out = subprocess.run([tool("node"), str(REPO / "hooks" / "sloptrim-tracker.js")],
-                         input=payload, capture_output=True, text=True,
-                         encoding="utf-8", errors="replace", cwd=str(REPO))
-    return out.stdout.count("[OK]")
+    cfg = tempfile.mkdtemp(prefix="check_docs-cfg-")
+    try:
+        with open(os.path.join(cfg, ".sloptrim-active"), "w", encoding="utf-8") as fh:
+            fh.write("full")
+        env = dict(os.environ, CLAUDE_CONFIG_DIR=cfg,
+                   CLAUDE_PLUGIN_ROOT=str(REPO), SLOPTRIM_DEFAULT_MODE="full")
+        out = subprocess.run([tool("node"), str(REPO / "hooks" / "sloptrim-tracker.js")],
+                             input=payload, capture_output=True, text=True,
+                             encoding="utf-8", errors="replace", cwd=str(REPO), env=env)
+        return out.stdout.count("[OK]")
+    finally:
+        shutil.rmtree(cfg, ignore_errors=True)
 
 
 WITH_SUITES = "--no-suites" not in sys.argv

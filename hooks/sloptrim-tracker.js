@@ -91,9 +91,13 @@ function doctor() {
     lines.push('  [!!] cannot write settings folder');
   }
   const anyFault = lines.some(l => l.includes('[!!]'));
-  lines.push(scoreOk && mode !== 'off' && !anyFault
-    ? `All good. It is on: every prose file saved from here is scored, and the tells are named. ${SELF} show reveals what got checked.`
-    : 'Fix the [!!] lines above, then run /sloptrim doctor again.');
+  lines.push(anyFault
+    ? 'Fix the [!!] lines above, then run /sloptrim doctor again.'
+    : mode === 'off'
+      ? `Nothing is wrong. It is switched off, so saved files are not scored. ${SELF} on turns it back on.`
+      : scoreOk
+        ? `All good. It is on: every prose file saved from here is scored, and the tells are named. ${SELF} show reveals what got checked.`
+        : `The install is sound but no file has been scored yet. Save a prose file, then ${SELF} show.`);
   return lines.join('\n');
 }
 
