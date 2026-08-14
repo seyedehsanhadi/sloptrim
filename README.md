@@ -15,7 +15,7 @@ Python standard library only, no network, no model. Prose only, never code.
 [![Version](https://img.shields.io/badge/version-0.9.0-blue)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE.txt)
 [![Dependencies](https://img.shields.io/badge/dependencies-none-blue)](scripts/detect.py)
-[![Tests](https://img.shields.io/badge/tests-150-blue)](tests/)
+[![Tests](https://img.shields.io/badge/tests-162-blue)](tests/)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](scripts/detect.py)
 
 [Install](#install) &middot; [What it does](#what-it-does) &middot; [Measured](#measured) &middot; [Limits](#what-it-cannot-do) &middot; [Patterns](references/patterns.md) &middot; [Ethics](ETHICS.md)
@@ -77,12 +77,24 @@ score and 12 are reported as writing advice and count for nothing: most of them 
 measurement showed they mark formal register rather than machine authorship, the rest
 because they are typographic habits.
 
+### French (experimental)
+
+Nine additional rules cover French, in `references/patterns-fr.md`. They fire only on
+documents that read as French, so English scoring is unchanged — verified byte-identical on
+this repository's own documents. They exist because the English rules do not reach French at
+all: a French paragraph carrying every documented tell scores 1/100 `clean` on the English
+set. The two families that have no English original to translate from are the *calque*
+(vocabulary rendered so literally it is rare or wrong in French: « une riche tapisserie »,
+« sans couture ») and the *faux-ami* (« définitivement » means *permanently*, not
+*definitely*). The French rules sit in their own unnumbered namespace, so the totals above
+still describe the English catalogue exactly.
+
 | | |
 |---|---|
 | Formats | 20, including `.docx`, `.pptx`, `.xlsx`, OpenDocument, `.epub`, `.ipynb`, LaTeX |
 | Runs in | Claude Code, on save. Other agents via `/sloptrim init`, which writes the contract to `AGENTS.md`, and `.cursor/rules/` |
 | Needs | Node for the hooks, Python 3.9 or newer for the detector, nothing else |
-| Suite | 97 Python tests and 53 hook checks, green in CI on Linux, Windows and macOS, against Python 3.9 and 3.13 |
+| Suite | 109 Python tests and 53 hook checks, green in CI on Linux, Windows and macOS, against Python 3.9 and 3.13 |
 | Does not see | A file written by a `Bash` command, which reaches disk without passing `Write` or `Edit` |
 
 | Command | Effect |
