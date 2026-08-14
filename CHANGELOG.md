@@ -2,6 +2,12 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- French support, gated on a language check: nine rules in `references/patterns-fr.md` covering the calque and faux-ami families that the English catalogue cannot reach, plus `is_french` in `scripts/detect.py`. They are additive and fire only on French documents, so English scoring is byte-identical; they carry no catalogue number, so the published totals continue to describe the English catalogue. Measured at zero hits across 59,733 words of human French.
+
 ## [0.9.0] - 2026-08-11
 
 First release. Pre-1.0: the command surface and the score calibration may still move.
@@ -17,7 +23,7 @@ First release. Pre-1.0: the command surface and the score calibration may still 
 - Twenty formats read with no dependencies: ten zip-based (docx, docm, pptx, pptm, xlsx, xlsm, odt, odp, ods, epub), Jupyter notebooks, and nine plain-text including LaTeX and reStructuredText.
 - `--clean`, which strips invisible characters, normalises non-standard spaces, folds homoglyphs to ASCII and trims stray whitespace, leaving visible content alone. `--ci` adds a resampled interval to the score.
 - `/sloptrim` commands for the level, a one-file check, the install diagnosis, and writing the contract to `AGENTS.md`. A rule file for Cursor, generated from the same contract the hook injects and pinned to it by a test.
-- 97 Python tests and 53 hook checks. Both suites run offline.
+- 109 Python tests and 53 hook checks. Both suites run offline.
 - The recorded session in the README, and the two scripts behind it: `record/session_capture.py` fires the real hooks with the payloads Claude Code sends and writes `record/session.json`, and `record/anim.py` draws the two SVGs from that capture.
 
 ### Where the measurements come from
