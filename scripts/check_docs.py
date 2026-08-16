@@ -298,8 +298,6 @@ CLAIMS = [
 
     C(r"version-(\d+\.\d+\.\d+)", VERSION),
     C(r"(?<!cff-)version: (\d+\.\d+\.\d+)", VERSION),
-    C(r"## \[(\d+\.\d+\.\d+)\]", VERSION),
-    C(r"tag/v(\d+\.\d+\.\d+)", VERSION),
     C(r'"version": "(\d+\.\d+\.\d+)"', VERSION),
 ]
 
@@ -559,6 +557,22 @@ def code_pass():
         check("README.md names the band %r" % name, name in readme,
               "detect.py emits the band %r and README.md never names it" % name)
     changelog = FLAT[REPO / "CHANGELOG.md"]
+    # A changelog accumulates, so older headings are not drift. What has to hold is that
+    # the newest entry is the version being shipped and that every entry has a tag link.
+    raw_log = (REPO / "CHANGELOG.md").read_text(encoding="utf-8")
+    releases = re.findall(r"^## \[(\d+\.\d+\.\d+)\]", raw_log, flags=re.M)
+    check("CHANGELOG.md leads with the shipping version",
+          bool(releases) and releases[0] == VERSION,
+          "plugin.json ships %s and CHANGELOG.md leads with %r"
+          % (VERSION, releases[0] if releases else "no release heading"))
+    check("CHANGELOG.md lists each release once",
+          len(releases) == len(set(releases)),
+          "CHANGELOG.md repeats a release heading: %r" % (releases,))
+    for rel in releases:
+        check("CHANGELOG.md links the %s tag" % rel,
+              re.search(r"^\[%s\]: \S+tag/v%s$" % (re.escape(rel), re.escape(rel)),
+                        raw_log, flags=re.M) is not None,
+              "CHANGELOG.md has a %s heading with no matching tag link" % rel)
     for name, low, high in BANDS:
         check("CHANGELOG.md gives the right range for %r" % name,
               "%s (%d-%d)" % (name, low, high) in changelog,

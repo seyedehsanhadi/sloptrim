@@ -2,6 +2,55 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.9.1] - 2026-08-17
+
+Fixes found by an external review and by a regression pass over the 0.9.0 release. No
+rule was added, removed or reweighted: every document scores exactly what it scored
+before, so any figure measured against 0.9.0 still stands.
+
+### Fixed
+
+- The detector is found on Windows installs where the Microsoft Store alias answers to
+  `python`. The launcher search stopped at the first name that ran and failed, so on
+  those machines nothing was ever scored. It now stops only on a timeout and otherwise
+  keeps trying, and `tests/interp.js` pins all four cases.
+- A file whose text is not UTF-8 is read as what it is. UTF-16 with a byte-order mark
+  was read as mojibake and scored as clean while the hooks reported hundreds of hidden
+  characters; a file holding NUL bytes is now recognised as binary and skipped.
+- Sessions no longer share a ledger when their identifiers differ only in punctuation.
+  A session already running when the plugin updates keeps reading its existing file
+  rather than starting empty.
+- A file scored below the threshold is recorded. It was checked and then dropped, so
+  `/sloptrim show` listed only what had been flagged and read as though nothing else
+  had been looked at.
+- `SKILL.pdf` is skipped the same way `SKILL.md` is: the exemption matches the name
+  without its extension, so an instruction file is exempt in any format.
+- `node_modules` is matched as a path component. A file named `node_modules.md` was
+  being skipped.
+- Two paths on the command line scan the first and say so on standard error. The first
+  was scanned and the rest dropped in silence.
+- `--clean` reports how much of a long file it read. The scan stops at 256 KB while the
+  guard accepts 512 KB, and the score covers only what was read.
+- `doctor` never reports all clear beside a fault, and says nothing is wrong when the
+  only finding is that the tool is switched off.
+- `stats` counts each message once. Duplicated transcript entries had inflated the
+  token totals it reported.
+- The status line validates `SLOPTRIM_DEFAULT_MODE` the way the hooks do, so an
+  unrecognised value cannot hide the segment while the hooks run at full.
+
+### Added
+
+- A welcome shown once on first run: what the tool does, the four commands, and that
+  there is no website, no account and no upload.
+- 99 Python tests and 58 hook checks, up from the release suite.
+
+### Note on trailing whitespace
+
+`--clean` removes every run of whitespace at the end of a line, including the two
+spaces that write a Markdown hard break. Sparing them was tried and reverted: it made
+the rule depend on how a file renders, which the text alone does not settle, and it
+spared the same two spaces in `.txt` and `.rst`, where they are only debris.
+
 ## [0.9.0] - 2026-08-11
 
 First release. Pre-1.0: the command surface and the score calibration may still move.
@@ -17,7 +66,7 @@ First release. Pre-1.0: the command surface and the score calibration may still 
 - Twenty formats read with no dependencies: ten zip-based (docx, docm, pptx, pptm, xlsx, xlsm, odt, odp, ods, epub), Jupyter notebooks, and nine plain-text including LaTeX and reStructuredText.
 - `--clean`, which strips invisible characters, normalises non-standard spaces, folds homoglyphs to ASCII and trims stray whitespace, leaving visible content alone. `--ci` adds a resampled interval to the score.
 - `/sloptrim` commands for the level, a one-file check, the install diagnosis, and writing the contract to `AGENTS.md`. A rule file for Cursor, generated from the same contract the hook injects and pinned to it by a test.
-- 99 Python tests and 58 hook checks. Both suites run offline.
+- A Python suite and a hook suite. Both run offline.
 - The recorded session in the README, and the two scripts behind it: `record/session_capture.py` fires the real hooks with the payloads Claude Code sends and writes `record/session.json`, and `record/anim.py` draws the two SVGs from that capture.
 
 ### Where the measurements come from
@@ -36,4 +85,5 @@ The figures quoted in [README.md](README.md), in [CITATION.cff](CITATION.cff) an
 - A file written by a `Bash` command reaches disk without passing `Write` or `Edit`, so the guard never sees it. PDF and RTF are recognised and noted in the session ledger, never read.
 - A template holding a merge field cannot clear the guard. `[Name]` raises a decisive rule and floors the score at 45, and filling the slot would mean inventing a name.
 
+[0.9.1]: https://github.com/seyedehsanhadi/sloptrim/releases/tag/v0.9.1
 [0.9.0]: https://github.com/seyedehsanhadi/sloptrim/releases/tag/v0.9.0
