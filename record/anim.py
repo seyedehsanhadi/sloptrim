@@ -108,7 +108,11 @@ def flags_of(context):
 
 def score_of(event):
     """The score and band exactly as the guard printed them for that file."""
-    return re.search(r"\(score (\d+/\w+)\)", event["context"]).group(1)
+    hit = re.search(r"\(score (\d+), band ([a-z ]+)\)", event.get("context") or "")
+    if not hit:
+        raise SystemExit("anim: no score in the recorded guard line for %s; re-record "
+                         "with python record/session_capture.py" % event.get("file", "?"))
+    return "%s/%s" % (hit.group(1), hit.group(2).strip())
 
 
 def unesc(s):

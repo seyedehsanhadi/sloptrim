@@ -142,7 +142,8 @@ function showLedger(sid) {
     if (r.kind === 'binary') {
       lines.push(`  ${r.file} - binary, shaped at write-time by the contract (not re-scored)`);
     } else {
-      const tells = r.tells && r.tells.length ? ` - fixed/flagged: ${r.tells.join('; ')}` : '';
+      const word = r.flagged ? 'flagged for fixing' : 'seen, under the threshold';
+      const tells = r.tells && r.tells.length ? ` - ${word}: ${r.tells.join('; ')}` : '';
       lines.push(`  ${r.file} - ${verdict(r.score)} (score ${r.score}/${r.band})${tells}`);
     }
   }

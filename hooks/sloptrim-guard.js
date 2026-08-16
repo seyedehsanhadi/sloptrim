@@ -38,13 +38,20 @@ if (!filePath) process.exit(0);
 const ext = path.extname(filePath).toLowerCase();
 const base = path.basename(filePath);
 
-if (/node_modules|[\\/]\.git[\\/]|[\\/]memory[\\/]/i.test(filePath)) process.exit(0);
+if (/(^|[\\/])node_modules[\\/]|[\\/]\.git[\\/]|[\\/]memory[\\/]/i.test(filePath)) process.exit(0);
 
 const selfRoot = process.env.CLAUDE_PLUGIN_ROOT || path.resolve(__dirname, '..');
 try {
   const rel = path.relative(selfRoot, path.resolve(filePath));
   if (rel && !rel.startsWith('..') && !path.isAbsolute(rel)) process.exit(0);
 } catch (e) { /* unresolvable path: fall through and score it */ }
+
+// Instruction files are the agent's own scaffolding, not a deliverable, so the name
+// skip runs before anything is logged: skill.pdf should be as exempt as skill.md.
+const lowerBase = base.toLowerCase();
+const SKIP_NAMES = new Set(['claude.md', 'claude.local.md', 'agents.md',
+                            'agents.local.md', 'skill.md', 'memory.md']);
+if (SKIP_NAMES.has(lowerBase)) process.exit(0);
 
 const isOffice = OFFICE_EXT.has(ext) || NOTEBOOK_EXT.has(ext);
 if (!PROSE_EXT.has(ext) && !isOffice) {
@@ -53,10 +60,6 @@ if (!PROSE_EXT.has(ext) && !isOffice) {
   }
   process.exit(0);
 }
-
-const lowerBase = base.toLowerCase();
-const SKIP_NAMES = new Set(['claude.md', 'agents.md', 'skill.md', 'memory.md']);
-if (SKIP_NAMES.has(lowerBase)) process.exit(0);
 
 // ------------------------------------------------------------------------
 // READ: Plain text is read here; zip-based documents are handed to the detector by path.
@@ -96,16 +99,19 @@ const labels = Object.entries(report)
   .map(([k, v]) => v.label)
   .slice(0, 5);
 
-logDeliverable({ t: Date.now(), file: base, kind: 'scored', score, band: m.ai_tell_band, tells: labels }, sid);
-
 const threshold = mode === 'strict' ? 20 : 40;
-if (score <= threshold) process.exit(0);
+const flagged = score > threshold;
+
+logDeliverable({ t: Date.now(), file: base, kind: 'scored', score,
+                 band: m.ai_tell_band, tells: labels, flagged }, sid);
+
+if (!flagged) process.exit(0);
 
 process.stdout.write(JSON.stringify({
   hookSpecificOutput: {
     hookEventName: 'PostToolUse',
     additionalContext:
-      `sloptrim: ${base} ${verdict(score)} (score ${score}/${m.ai_tell_band}). Flagged: ${labels.join('; ')}. ` +
+      `sloptrim: ${base} ${verdict(score)} (score ${score}, band ${m.ai_tell_band}). Flagged: ${labels.join('; ')}. ` +
       'Fix the flagged spans before finishing (max 2 passes, keep rhythm variation).',
   },
 }));

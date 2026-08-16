@@ -61,6 +61,25 @@ out="$(printf '{"tool_name":"Write","tool_input":{"file_path":"%s"}}' "$CLEAN" |
 out="$(printf '{"tool_name":"Write","tool_input":{"file_path":"%s"}}' "$REPO/scripts/detect.py" | node "$REPO/hooks/sloptrim-guard.js")"
 [ -z "$out" ]; check "guard ignores .py files" $?
 
+# A filename that merely contains node_modules is not a dependency tree.
+NM="$(dirname "$SLOP")/node_modules.md"
+cp "$SLOP" "$NM"
+out="$(printf '{"tool_name":"Write","tool_input":{"file_path":"%s"}}' "$NM" | node "$REPO/hooks/sloptrim-guard.js")"
+[ -n "$out" ]; check "a file merely named node_modules.md is still scored" $?
+mkdir -p "$(dirname "$SLOP")/node_modules"
+NMD="$(dirname "$SLOP")/node_modules/readme.md"
+cp "$SLOP" "$NMD"
+out="$(printf '{"tool_name":"Write","tool_input":{"file_path":"%s"}}' "$NMD" | node "$REPO/hooks/sloptrim-guard.js")"
+[ -z "$out" ]; check "a real node_modules directory is still skipped" $?
+
+# Instruction files are the agent's scaffolding, not a deliverable.
+for name in CLAUDE.local.md AGENTS.local.md; do
+  IF="$(dirname "$SLOP")/$name"
+  cp "$SLOP" "$IF"
+  out="$(printf '{"tool_name":"Write","tool_input":{"file_path":"%s"}}' "$IF" | node "$REPO/hooks/sloptrim-guard.js")"
+  [ -z "$out" ]; check "$name is exempt like CLAUDE.md" $?
+done
+
 echo lite > "$FLAG"
 out="$(printf '{"tool_name":"Write","tool_input":{"file_path":"%s"}}' "$SLOP" | node "$REPO/hooks/sloptrim-guard.js")"
 [ -z "$out" ]; check "guard disabled in lite mode" $?

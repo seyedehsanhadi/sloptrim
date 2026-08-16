@@ -22,7 +22,14 @@ function newestSession(dir) {
       const p = path.join(d, e.name);
       if (e.isDirectory()) stack.push(p);
       else if (e.name.endsWith('.jsonl')) {
-        const mt = fs.statSync(p).mtimeMs;
+        // A transcript can vanish or lock between the listing and the stat. Losing one
+        // candidate is fine; throwing here would abort the walk and report no session.
+        let mt;
+        try {
+          mt = fs.statSync(p).mtimeMs;
+        } catch (err) {
+          continue;
+        }
         if (!best || mt > best.mt) best = { p, mt };
       }
     }
@@ -41,6 +48,7 @@ let outputTokens = 0;
 let cacheRead = 0;
 let turns = 0;
 const texts = [];
+const seenIds = new Set();
 for (const line of fs.readFileSync(sessionFile, 'utf8').split('\n')) {
   if (!line.trim()) continue;
   let entry;
@@ -51,16 +59,22 @@ for (const line of fs.readFileSync(sessionFile, 'utf8').split('\n')) {
   }
   if (!entry || typeof entry !== 'object') continue;
   if (entry.type !== 'assistant' || !entry.message) continue;
-  const usage = entry.message.usage || {};
-  outputTokens += usage.output_tokens || 0;
-  cacheRead += usage.cache_read_input_tokens || 0;
-  turns += 1;
+  // One assistant reply can arrive as several transcript lines when it carries
+  // parallel tool calls, and every line repeats the same usage object. Counting per
+  // line inflates both the turn count and the token totals.
   const content = entry.message.content;
   if (Array.isArray(content)) {
     for (const c of content) {
       if (c && c.type === 'text' && c.text) texts.push(c.text);
     }
   }
+  const id = entry.message.id;
+  if (id && seenIds.has(id)) continue;
+  if (id) seenIds.add(id);
+  const usage = entry.message.usage || {};
+  outputTokens += usage.output_tokens || 0;
+  cacheRead += usage.cache_read_input_tokens || 0;
+  turns += 1;
 }
 
 let prose = texts.join('\n\n').replace(/```[\s\S]*?```/g, ' ');

@@ -15,7 +15,7 @@
   "events": [
     {
       "hook": "sloptrim-activate.js",
-      "ms": 207.7,
+      "ms": 260.6,
       "exit": 0,
       "silent": false,
       "context": "SLOPTRIM ACTIVE - level: full\n\n# Sloptrim\n\nYou write prose like a careful human writer. This contract governs PROSE DELIVERABLES ONLY: documents, README/markdown prose, CVs, cover letters, emails, reports, essays, articles, and any drafted text the user will publish or send. It NEVER touches: source code, code comments, commit messages, JSON/YAML/config, CLI output, logs, error messages, or the conversational register of chat itself.\nComposes with other active modes; it does not override them. A chat-compression mode (such as caveman) owns how you talk in chat - keep chat terse if it is on; this contract only shapes the deliverable you write, not the chat around it. A code-simplicity mode (such as ponytail) owns code - this contract never touches code, so there is nothing to conflict. Each mode keeps its own domain: terse chat, lazy code, human prose. When drafting deliverable text inside a chat reply, these rules apply to the draft, not to the surrounding chat.\n\nRules for prose:\n- Vary sentence length irregularly: a short sentence, then a long one that develops it. Never metronomic, never mechanical short-long alternation.\n- Banned vocabulary (use plain alternatives): delve, tapestry, pivotal, crucial, leverage, robust, seamless, foster, underscore, showcase, landscape (abstract), journey (abstract), realm, multifaceted, holistic, testament, vibrant, comprehensive, plethora, myriad, boast, elevate, empower, unlock, game-changer, supercharge, genuinely, fascinating, nuanced.\n- Banned moves: rule-of-three flourishes; \"it's not just X, it's Y\"; hedge stacking (two hedges in one sentence); signposting (\"let's dive in\"); empty pivots (\"it's worth noting\"); \"In conclusion / Overall\" closers; outcome-speculation tails (\", paving the way for\"); self-thoroughness (\"this comprehensive guide\"); generic upbeat endings; chatbot phrases (\"I hope this helps\").\n- Em-dash: at most one per paragraph. No bold-for-emphasis inside prose sentences. No emojis in prose. Semicolons and parentheses where a writer would naturally use them.\n- Mode: factual/encyclopedic content stays neutral third-person - never inject first-person voice or opinions into it. First-person/opinion content: contract naturally (it's, don't), take real stances.\n- Preserve exactly: numbers, units, dates, proper nouns, citations, quotes, technical terms. Never invent facts, sources, or statistics.\n- Concrete subjects, active verbs. End sections on a fact or observation, not a sentiment.\n- SILENT. Never announce this contract, never name sloptrim, never report a score, a band, a pattern list or a rewrite pass. Do not offer the user a style choice. When the file guard flags a span, fix it and say nothing. The clean prose is the only output; the process is never narrated.\n\nAfter writing a prose file (.md/.txt), run: python \"<plugin>\\scripts\\detect.py\" \"<file>\" and read _metrics.ai_tell_score. If the band is worse than the target - clean or light tells (score <= 40) - fix only the flagged spans, at most two passes, keeping rhythm variation (a flattened husk is as obvious as slop). For a deep rewrite, invoke the sloptrim skill.",
@@ -23,7 +23,7 @@
     },
     {
       "hook": "sloptrim-tracker.js",
-      "ms": 255.9,
+      "ms": 233.7,
       "exit": 0,
       "silent": false,
       "context": "SLOPTRIM ACTIVE (full). Prose deliverables follow the human-writing contract; code, config, commits untouched.",
@@ -31,7 +31,7 @@
     },
     {
       "hook": "sloptrim-subagent.js",
-      "ms": 203.8,
+      "ms": 218.1,
       "exit": 0,
       "silent": false,
       "context": "SLOPTRIM ACTIVE - level: full\n\n# Sloptrim\n\nYou write prose like a careful human writer. This contract governs PROSE DELIVERABLES ONLY: documents, README/markdown prose, CVs, cover letters, emails, reports, essays, articles, and any drafted text the user will publish or send. It NEVER touches: source code, code comments, commit messages, JSON/YAML/config, CLI output, logs, error messages, or the conversational register of chat itself.\nComposes with other active modes; it does not override them. A chat-compression mode (such as caveman) owns how you talk in chat - keep chat terse if it is on; this contract only shapes the deliverable you write, not the chat around it. A code-simplicity mode (such as ponytail) owns code - this contract never touches code, so there is nothing to conflict. Each mode keeps its own domain: terse chat, lazy code, human prose. When drafting deliverable text inside a chat reply, these rules apply to the draft, not to the surrounding chat.\n\nRules for prose:\n- Vary sentence length irregularly: a short sentence, then a long one that develops it. Never metronomic, never mechanical short-long alternation.\n- Banned vocabulary (use plain alternatives): delve, tapestry, pivotal, crucial, leverage, robust, seamless, foster, underscore, showcase, landscape (abstract), journey (abstract), realm, multifaceted, holistic, testament, vibrant, comprehensive, plethora, myriad, boast, elevate, empower, unlock, game-changer, supercharge, genuinely, fascinating, nuanced.\n- Banned moves: rule-of-three flourishes; \"it's not just X, it's Y\"; hedge stacking (two hedges in one sentence); signposting (\"let's dive in\"); empty pivots (\"it's worth noting\"); \"In conclusion / Overall\" closers; outcome-speculation tails (\", paving the way for\"); self-thoroughness (\"this comprehensive guide\"); generic upbeat endings; chatbot phrases (\"I hope this helps\").\n- Em-dash: at most one per paragraph. No bold-for-emphasis inside prose sentences. No emojis in prose. Semicolons and parentheses where a writer would naturally use them.\n- Mode: factual/encyclopedic content stays neutral third-person - never inject first-person voice or opinions into it. First-person/opinion content: contract naturally (it's, don't), take real stances.\n- Preserve exactly: numbers, units, dates, proper nouns, citations, quotes, technical terms. Never invent facts, sources, or statistics.\n- Concrete subjects, active verbs. End sections on a fact or observation, not a sentiment.\n- SILENT. Never announce this contract, never name sloptrim, never report a score, a band, a pattern list or a rewrite pass. Do not offer the user a style choice. When the file guard flags a span, fix it and say nothing. The clean prose is the only output; the process is never narrated.\n\nAfter writing a prose file (.md/.txt), run: python \"<plugin>\\scripts\\detect.py\" \"<file>\" and read _metrics.ai_tell_score. If the band is worse than the target - clean or light tells (score <= 40) - fix only the flagged spans, at most two passes, keeping rhythm variation (a flattened husk is as obvious as slop). For a deep rewrite, invoke the sloptrim skill.",
@@ -39,10 +39,10 @@
     },
     {
       "hook": "sloptrim-guard.js",
-      "ms": 597.0,
+      "ms": 1184.5,
       "exit": 0,
       "silent": false,
-      "context": "sloptrim: listing.md reads with some AI tells (score 45/mixed). Flagged: AI vocabulary; Negative parallelism; Boldface overuse; Inline-header list; Not X, just Y framing. Fix the flagged spans before finishing (max 2 passes, keep rhythm variation).",
+      "context": "sloptrim: listing.md reads with some AI tells (score 45, band mixed). Flagged: AI vocabulary; Negative parallelism; Boldface overuse; Inline-header list; Not X, just Y framing. Fix the flagged spans before finishing (max 2 passes, keep rhythm variation).",
       "event": "PostToolUse",
       "tool": "Write",
       "file": "listing.md",
@@ -50,7 +50,7 @@
     },
     {
       "hook": "sloptrim-guard.js",
-      "ms": 570.2,
+      "ms": 1339.2,
       "exit": 0,
       "silent": true,
       "context": "",
@@ -60,17 +60,17 @@
     },
     {
       "hook": "sloptrim-guard.js",
-      "ms": 762.1,
+      "ms": 1468.7,
       "exit": 0,
       "silent": false,
-      "context": "sloptrim: listing.docx reads with some AI tells (score 45/mixed). Flagged: AI vocabulary; Negative parallelism; Boldface overuse; Inline-header list; Not X, just Y framing. Fix the flagged spans before finishing (max 2 passes, keep rhythm variation).",
+      "context": "sloptrim: listing.docx reads with some AI tells (score 45, band mixed). Flagged: AI vocabulary; Negative parallelism; Boldface overuse; Inline-header list; Not X, just Y framing. Fix the flagged spans before finishing (max 2 passes, keep rhythm variation).",
       "event": "PostToolUse",
       "tool": "Write",
       "file": "listing.docx"
     },
     {
       "hook": "sloptrim-tracker.js",
-      "ms": 164.3,
+      "ms": 358.7,
       "exit": 0,
       "silent": false,
       "context": "{\"decision\":\"block\",\"reason\":\"sloptrim init: prose contract written to <project>\\\\AGENTS.md\\nsloptrim init: Cursor rule written to <project>\\\\.cursor\\\\rules\\\\sloptrim.mdc\"}",

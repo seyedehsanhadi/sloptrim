@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const crypto = require('crypto');
 const { execFileSync } = require('child_process');
 
 // ------------------------------------------------------------------------
@@ -120,8 +121,12 @@ function runDetectResult(inputText, opts, extraArgs) {
       if (String(out || '').trim()) return { ok: true, out, kind: 'ok', detail: '' };
       return { ok: false, out: null, kind: 'no-output', detail: '' };
     } catch (e) {
+      // Only a launcher that is not there is worth trying the next name for. Once an
+      // interpreter has started, its failure is the answer, and retrying the other two
+      // spends the same timeout again for nothing.
       if (e && e.status == null && e.code !== 'ETIMEDOUT') continue;
-      if (!ran) ran = e;
+      ran = e;
+      break;
     }
   }
   if (ran) return { ok: false, out: null, kind: 'detector-error', detail: detectorMessage(ran) };
@@ -146,8 +151,13 @@ function verdict(score) {
 }
 
 function ledgerPath(sessionId) {
-  const sid = String(sessionId || '').replace(/[^a-zA-Z0-9-]/g, '').slice(0, 64);
-  return sid ? path.join(CONFIG_DIR, `.sloptrim-ledger-${sid}.json`) : LEDGER;
+  const raw = String(sessionId || '');
+  if (!raw) return LEDGER;
+  // Stripping unsafe characters and truncating both merge distinct ids onto one file.
+  // Hashing the whole id keeps the filename safe and short without collapsing any two.
+  const safe = raw.replace(/[^a-zA-Z0-9-]/g, '').slice(0, 40);
+  const tag = crypto.createHash('sha256').update(raw).digest('hex').slice(0, 12);
+  return path.join(CONFIG_DIR, `.sloptrim-ledger-${safe}-${tag}.json`);
 }
 
 // ------------------------------------------------------------------------

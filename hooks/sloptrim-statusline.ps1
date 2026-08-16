@@ -17,7 +17,7 @@ function Seg($file, $label, $default) {
 $parts = @(
     (Seg '.ponytail-mode'  'PONY' ''),
     (Seg '.caveman-active' 'CAVE' ''),
-    (Seg '.sloptrim-active' 'SLOP' 'full')
+    (Seg '.sloptrim-active' 'SLOP' $(if ($env:SLOPTRIM_DEFAULT_MODE) { $env:SLOPTRIM_DEFAULT_MODE } else { 'full' }))
 ) | Where-Object { $_ }
 
 $esc = [char]27

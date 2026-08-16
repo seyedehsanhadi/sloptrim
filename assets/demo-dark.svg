@@ -4,10 +4,10 @@
 <line x1="50" y1="42" x2="774" y2="42" stroke="#2a313b"/>
 <rect class="rail" x="26" y="52" width="3" height="516.0" rx="1.5" fill="#FF6B3D"/>
 <text x="40" y="30" fill="#FF6B3D" class="s t" text-anchor="end">sloptrim</text>
-<g class="r_session"><circle cx="54" cy="56.0" r="3" fill="#FF6B3D"/><text x="68" y="60.0" fill="#EDE8DF">SessionStart</text><text x="720" y="60.0" fill="#79828d" class="s n" text-anchor="end">the writing contract enters context</text><text x="774" y="60.0" fill="#525b66" class="ms" text-anchor="end">207.7 ms</text></g>
-<g class="r_prompt"><circle cx="54" cy="81.0" r="3" fill="#4493f8"/><text x="68" y="85.0" fill="#EDE8DF">&gt; write the summer reading challenge listing</text><text x="720" y="85.0" fill="#79828d" class="s n" text-anchor="end">restated on every prompt</text><text x="774" y="85.0" fill="#525b66" class="ms" text-anchor="end">255.9 ms</text></g>
-<g class="r_sub"><circle cx="54" cy="106.0" r="3" fill="#FF6B3D"/><text x="68" y="110.0" fill="#EDE8DF">SubagentStart</text><text x="720" y="110.0" fill="#79828d" class="s n" text-anchor="end">a subagent gets the same contract</text><text x="774" y="110.0" fill="#525b66" class="ms" text-anchor="end">203.8 ms</text></g>
-<g class="r_write"><circle cx="54" cy="138.0" r="3" fill="#68d391"/><text x="68" y="142.0" fill="#EDE8DF">Write(listing.md)</text><text x="720" y="142.0" fill="#FF6B3D" class="s" text-anchor="end">45/mixed</text><text x="774" y="142.0" fill="#525b66" class="ms" text-anchor="end">597.0 ms</text></g>
+<g class="r_session"><circle cx="54" cy="56.0" r="3" fill="#FF6B3D"/><text x="68" y="60.0" fill="#EDE8DF">SessionStart</text><text x="720" y="60.0" fill="#79828d" class="s n" text-anchor="end">the writing contract enters context</text><text x="774" y="60.0" fill="#525b66" class="ms" text-anchor="end">260.6 ms</text></g>
+<g class="r_prompt"><circle cx="54" cy="81.0" r="3" fill="#4493f8"/><text x="68" y="85.0" fill="#EDE8DF">&gt; write the summer reading challenge listing</text><text x="720" y="85.0" fill="#79828d" class="s n" text-anchor="end">restated on every prompt</text><text x="774" y="85.0" fill="#525b66" class="ms" text-anchor="end">233.7 ms</text></g>
+<g class="r_sub"><circle cx="54" cy="106.0" r="3" fill="#FF6B3D"/><text x="68" y="110.0" fill="#EDE8DF">SubagentStart</text><text x="720" y="110.0" fill="#79828d" class="s n" text-anchor="end">a subagent gets the same contract</text><text x="774" y="110.0" fill="#525b66" class="ms" text-anchor="end">218.1 ms</text></g>
+<g class="r_write"><circle cx="54" cy="138.0" r="3" fill="#68d391"/><text x="68" y="142.0" fill="#EDE8DF">Write(listing.md)</text><text x="720" y="142.0" fill="#FF6B3D" class="s" text-anchor="end">45/mixed</text><text x="774" y="142.0" fill="#525b66" class="ms" text-anchor="end">1184.5 ms</text></g>
 <g class="c0"><text textLength="73.9" lengthAdjust="spacingAndGlyphs">**Discover</text><rect class="s0 sk" x="0" y="-4" width="73.9" height="1.4" fill="#FF6B3D"/></g>
 <g class="a1"><text textLength="58.9" lengthAdjust="spacingAndGlyphs">Discover</text></g>
 <g class="k2"><text textLength="21.4" lengthAdjust="spacingAndGlyphs" fill="#EDE8DF">the</text></g>
@@ -126,10 +126,10 @@
 <text x="50" y="381.9" fill="#FF6B3D" class="s">sloptrim &#183; AI vocabulary; Negative parallelism; Boldface overuse; Inline-header</text>
 <text x="50" y="399.9" fill="#FF6B3D" class="s">list; Not X, just Y framing</text>
 </g>
-<g class="r_edit"><circle cx="54" cy="427.9" r="3" fill="#68d391"/><text x="68" y="431.9" fill="#EDE8DF">Edit(listing.md)</text><text x="720" y="431.9" fill="#68d391" class="s" text-anchor="end">15/clean<tspan fill="#79828d" class="n"> &#183; the guard returns nothing</tspan></text><text x="774" y="431.9" fill="#525b66" class="ms" text-anchor="end">570.2 ms</text></g>
-<g class="r_docx"><circle cx="54" cy="459.9" r="3" fill="#68d391"/><text x="68" y="463.9" fill="#EDE8DF">Write(listing.docx)</text><text x="720" y="463.9" fill="#FF6B3D" class="s" text-anchor="end">45/mixed</text><text x="774" y="463.9" fill="#525b66" class="ms" text-anchor="end">762.1 ms</text></g>
+<g class="r_edit"><circle cx="54" cy="427.9" r="3" fill="#68d391"/><text x="68" y="431.9" fill="#EDE8DF">Edit(listing.md)</text><text x="720" y="431.9" fill="#68d391" class="s" text-anchor="end">15/clean<tspan fill="#79828d" class="n"> &#183; the guard returns nothing</tspan></text><text x="774" y="431.9" fill="#525b66" class="ms" text-anchor="end">1339.2 ms</text></g>
+<g class="r_docx"><circle cx="54" cy="459.9" r="3" fill="#68d391"/><text x="68" y="463.9" fill="#EDE8DF">Write(listing.docx)</text><text x="720" y="463.9" fill="#FF6B3D" class="s" text-anchor="end">45/mixed</text><text x="774" y="463.9" fill="#525b66" class="ms" text-anchor="end">1468.7 ms</text></g>
 <g class="r_docxsay"><text x="68" y="481.9" fill="#79828d" class="s n">the same text saved as a .docx, read out of the zip</text></g>
-<g class="r_init"><circle cx="54" cy="510.0" r="3" fill="#4493f8"/><text x="68" y="514.0" fill="#EDE8DF">&gt; /sloptrim init</text><text x="774" y="514.0" fill="#525b66" class="ms" text-anchor="end">164.3 ms</text></g>
+<g class="r_init"><circle cx="54" cy="510.0" r="3" fill="#4493f8"/><text x="68" y="514.0" fill="#EDE8DF">&gt; /sloptrim init</text><text x="774" y="514.0" fill="#525b66" class="ms" text-anchor="end">358.7 ms</text></g>
 <g class="r_init"><text x="68" y="532.0" fill="#79828d" class="s n">prose contract written to AGENTS.md</text></g>
 <g class="r_local"><text x="50" y="562.0" fill="#79828d" class="s n">no network, no model, Python standard library only &#183; Linux, Windows, macOS</text></g>
 </svg>

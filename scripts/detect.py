@@ -1209,7 +1209,12 @@ def clean_text(text: str) -> str:
         out.append(ch)
     cleaned = "".join(out)
     cleaned = fold_mixed_script(cleaned)
+    # Exactly two spaces before a newline is a Markdown hard break, which is visible
+    # content: removing it joins two lines when the file renders. Everything else that
+    # trails a line is debris and goes.
+    cleaned = re.sub(r"(?<! ) {2}(?=\r?\n)", "\x00HB\x00", cleaned)
     cleaned = re.sub(r"[ \t]+(?=\r?\n)", "", cleaned)
+    cleaned = cleaned.replace("\x00HB\x00", "  ")
     # Blank leading lines go; the first line's own indentation stays, because
     # four spaces in Markdown is a code block, not stray whitespace.
     cleaned = re.sub(r"\A(?:[ \t]*\r?\n)+", "", cleaned)
@@ -1224,7 +1229,8 @@ def detect_trailing_whitespace(text: str) -> dict:
     trailing_blanks = eof_run.count(" ") + eof_run.count("\t")
     lead = re.match(r"[ \t\r\n]+", text)
     leading_ws = len(lead.group(0)) if lead else 0
-    eol_spaces = len(re.findall(r"[ \t]+\r?\n", text))
+    # A Markdown hard break is two spaces and nothing else, so it is not debris.
+    eol_spaces = len(re.findall(r"(?:(?<! ) {1}|(?<! ) {3,}|\t+| *\t[ \t]*)\r?\n", text))
     artifact = (
         trailing_newlines >= 2
         or trailing_blanks > 0
@@ -1361,10 +1367,10 @@ _SCORE_STRONG = {
     "30_diff_anchored", "17_negative_parallelism", "5_simple_yet",
     "69_canonical_slop", "71_degenerate_repetition",
 }
+# Keys listed here that are also demoted below never reach the weight, because the
+# scoring loop tests the demoted sets first. Only rules that can score belong here.
 _SCORE_SOFT = {
-    "58_em_dash_overuse", "54_hedge_stacking", "4_hyphen_cliche",
-    "37_transition_cluster", "46_punctuation_underuse",
-    "57_emojis", "2_model_dialect", "19_filler_phrases",
+    "37_transition_cluster", "57_emojis", "2_model_dialect",
     "23_editorial_interjection",
 }
 _SCORE_STYLE_ONLY = {"60_curly_quotes", "61_hyphen_for_en_dash"}
@@ -1580,6 +1586,13 @@ def strip_code(text: str) -> str:
 
 
 _SCAN_CAP = 262144
+
+
+def _reading_order(name: str) -> tuple:
+    """Sort chapter10 after chapter2. A plain string sort puts a book's tenth chapter
+    before its second, which shuffles the document the rhythm rules then read."""
+    parts = re.split(r"(\d+)", name)
+    return tuple((1, int(p)) if p.isdigit() else (0, p) for p in parts)
 
 
 # ------------------------------------------------------------------ main scan
@@ -1873,6 +1886,8 @@ def scan(raw_text: str) -> dict:
     passive = detect_passive_voice(text)
     score = ai_tell_score(result, text, burst, para_mono, punct, readability)
     result["_metrics"] = {
+        "scanned_chars": min(len(raw_text), _SCAN_CAP),
+        "truncated": len(raw_text) > _SCAN_CAP,
         "sentences": burst["sentences"],
         "length_cv": burst["cv"],
         "has_short_sentence": burst["has_short"],
@@ -1988,7 +2003,7 @@ def extract_office_text(path: str) -> str:
     out: list = []
     with zipfile.ZipFile(path) as z:
         names = [n for n in z.namelist() if any(w in n for w in wanted)]
-        names.sort()
+        names.sort(key=_reading_order)
         for name in names:
             try:
                 root = ET.fromstring(_numeric_entities(z.read(name)))
@@ -2101,7 +2116,9 @@ USAGE = """usage: detect.py [--clean] [--ci] [--] [FILE]
 
 Scans FILE, or stdin when no file is given, and prints the findings as JSON.
 
-  --clean   print the scrubbed text instead of the JSON report
+  --clean   print the scrubbed text instead of the JSON report. For a .docx, .epub,
+            .odt or .ipynb this prints the extracted plain text, not a rebuilt
+            document, so redirecting it back over the original destroys the file.
   --ci      add a resampled interval to the score
   --        stop reading options, so a FILE may begin with a dash
   --help    this message
@@ -2133,6 +2150,10 @@ def main() -> int:
             print(json.dumps({"error": f"unknown option: {arg}. Try --help."}),
                   file=sys.stderr)
             return 2
+    if len(paths) > 1:
+        print(json.dumps({"error": "one file at a time; got %d. Try --help."
+                          % len(paths)}), file=sys.stderr)
+        return 2
     try:
         text, newline = read_source(paths)
     except (OSError, zipfile.BadZipFile) as e:

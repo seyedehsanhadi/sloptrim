@@ -449,7 +449,12 @@ def svg_pass():
                   % (REL[doc], quoted))
 
     joined = " ".join(demo_l)
-    score, band = re.search(r"(\d+)/(\w+)", joined).group(1, 2)
+    hit = re.search(r"(\d+)/(\w+)", joined)
+    check("the demo SVG still renders a score and band", hit is not None,
+          "no <score>/<band> string found in assets/demo-light.svg")
+    if hit is None:
+        return
+    score, band = hit.group(1, 2)
     check("the demo SVG renders a real band name", band in BAND_NAMES,
           "assets/demo-light.svg renders the band %r and detect.py emits %r"
           % (band, BAND_NAMES))
