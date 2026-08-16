@@ -180,6 +180,9 @@ out="$(echo '{"prompt":"/sloptrim doctor"}' | CLAUDE_CONFIG_DIR="$FRESH" node "$
 echo "$out" | grep -q "python runs the detector"; check "fresh install: doctor reports detector health" $?
 echo "$out" | grep -q "All good"; check "fresh install: doctor gives the all-clear" $?
 
+node "$REPO/tests/interp.js" >/dev/null 2>&1
+check "a failing first python falls through to the next launcher" $?
+
 crashed=0
 for hook in activate tracker guard stats; do
   for payload in 'null' '[1,2,3]' 'not json' '{"prompt":42}' '{"tool_input":null}' '{"transcript_path":123}' ''; do

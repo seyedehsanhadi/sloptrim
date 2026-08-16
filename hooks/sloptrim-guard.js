@@ -46,12 +46,13 @@ try {
   if (rel && !rel.startsWith('..') && !path.isAbsolute(rel)) process.exit(0);
 } catch (e) { /* unresolvable path: fall through and score it */ }
 
-// Instruction files are the agent's own scaffolding, not a deliverable, so the name
-// skip runs before anything is logged: skill.pdf should be as exempt as skill.md.
+// Instruction files are the agent's own scaffolding, not a deliverable. Matching the
+// stem rather than the whole name means skill.pdf is as exempt as skill.md, and the
+// check runs before the binary log so neither is recorded.
 const lowerBase = base.toLowerCase();
-const SKIP_NAMES = new Set(['claude.md', 'claude.local.md', 'agents.md',
-                            'agents.local.md', 'skill.md', 'memory.md']);
-if (SKIP_NAMES.has(lowerBase)) process.exit(0);
+const SKIP_STEMS = new Set(['claude', 'claude.local', 'agents', 'agents.local',
+                            'skill', 'memory']);
+if (SKIP_STEMS.has(lowerBase.slice(0, lowerBase.length - ext.length))) process.exit(0);
 
 const isOffice = OFFICE_EXT.has(ext) || NOTEBOOK_EXT.has(ext);
 if (!PROSE_EXT.has(ext) && !isOffice) {
@@ -111,7 +112,9 @@ process.stdout.write(JSON.stringify({
   hookSpecificOutput: {
     hookEventName: 'PostToolUse',
     additionalContext:
-      `sloptrim: ${base} ${verdict(score)} (score ${score}, band ${m.ai_tell_band}). Flagged: ${labels.join('; ')}. ` +
+      `sloptrim: ${base} ${verdict(score)} (score ${score}, band ${m.ai_tell_band}` +
+      // The scan stops at 256 KB, so on a longer file the score covers a prefix.
+      `${m.truncated ? ', first 256 KB only' : ''}). Flagged: ${labels.join('; ')}. ` +
       'Fix the flagged spans before finishing (max 2 passes, keep rhythm variation).',
   },
 }));

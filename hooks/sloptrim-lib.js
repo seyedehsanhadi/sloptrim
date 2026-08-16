@@ -121,12 +121,17 @@ function runDetectResult(inputText, opts, extraArgs) {
       if (String(out || '').trim()) return { ok: true, out, kind: 'ok', detail: '' };
       return { ok: false, out: null, kind: 'no-output', detail: '' };
     } catch (e) {
-      // Only a launcher that is not there is worth trying the next name for. Once an
-      // interpreter has started, its failure is the answer, and retrying the other two
-      // spends the same timeout again for nothing.
-      if (e && e.status == null && e.code !== 'ETIMEDOUT') continue;
-      ran = e;
-      break;
+      // A timeout is the only failure worth stopping for: it is the one that costs the
+      // full budget again on each retry. Everything else must keep trying the next name,
+      // because on Windows the first `python` on PATH is often the Store alias, which
+      // starts and exits non-zero while `py` two names later works perfectly.
+      if (e && e.code === 'ETIMEDOUT') {
+        ran = e;
+        break;
+      }
+      // A launcher that is not installed says nothing about the detector, so it must
+      // not be remembered as a detector failure.
+      if (e && e.status != null && !ran) ran = e;
     }
   }
   if (ran) return { ok: false, out: null, kind: 'detector-error', detail: detectorMessage(ran) };
@@ -157,7 +162,17 @@ function ledgerPath(sessionId) {
   // Hashing the whole id keeps the filename safe and short without collapsing any two.
   const safe = raw.replace(/[^a-zA-Z0-9-]/g, '').slice(0, 40);
   const tag = crypto.createHash('sha256').update(raw).digest('hex').slice(0, 12);
-  return path.join(CONFIG_DIR, `.sloptrim-ledger-${safe}-${tag}.json`);
+  const current = path.join(CONFIG_DIR, `.sloptrim-ledger-${safe}-${tag}.json`);
+  // A session already running when the plugin updated has its history under the older
+  // name. Keep using that file rather than orphaning what the user already scored.
+  try {
+    if (!fs.existsSync(current)) {
+      const legacy = path.join(CONFIG_DIR,
+        `.sloptrim-ledger-${raw.replace(/[^a-zA-Z0-9-]/g, '').slice(0, 64)}.json`);
+      if (legacy !== current && fs.existsSync(legacy)) return legacy;
+    }
+  } catch (e) { /* unreadable config dir: use the current name */ }
+  return current;
 }
 
 // ------------------------------------------------------------------------

@@ -142,7 +142,10 @@ function showLedger(sid) {
     if (r.kind === 'binary') {
       lines.push(`  ${r.file} - binary, shaped at write-time by the contract (not re-scored)`);
     } else {
-      const word = r.flagged ? 'flagged for fixing' : 'seen, under the threshold';
+      // Records written before this field existed carry no verdict, so say what was
+      // found rather than guessing at a threshold that may not have been the one used.
+      const word = r.flagged === undefined ? 'tells found'
+        : r.flagged ? 'flagged for fixing' : 'seen, under the threshold';
       const tells = r.tells && r.tells.length ? ` - ${word}: ${r.tells.join('; ')}` : '';
       lines.push(`  ${r.file} - ${verdict(r.score)} (score ${r.score}/${r.band})${tells}`);
     }

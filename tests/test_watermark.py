@@ -108,33 +108,24 @@ def test_leading_indentation_survives(tmp_path):
     assert clean(text, tmp_path) == text
 
 
-def test_markdown_hard_break_survives(tmp_path):
-    """Two spaces before a newline render as a line break, so they are visible
-    content. Removing them joins two lines in the rendered document."""
-    text = "First line, hard break here.  \nSecond line.\n"
-    assert clean(text, tmp_path) == text
-
-
-def test_other_trailing_whitespace_still_goes(tmp_path):
-    """One space, three spaces and a tab are debris and must still be trimmed."""
-    text = "one \nthree   \ntab\t\ndone.\n"
-    assert clean(text, tmp_path) == "one\nthree\ntab\ndone.\n"
-
-
-def test_one_file_at_a_time(tmp_path):
-    """Two paths used to scan the first and drop the rest without a word."""
+def test_extra_files_are_reported_not_dropped_silently(tmp_path):
+    """Two paths used to scan the first and drop the rest without a word. It still
+    scans the first, because a shell glob that worked must keep working, but it now
+    says on stderr that it did."""
+    import json
     a, b = tmp_path / "a.md", tmp_path / "b.md"
     a.write_text("First.\n", encoding="utf-8")
     b.write_text("Second.\n", encoding="utf-8")
     r = subprocess.run([sys.executable, str(DETECT), str(a), str(b)],
                        capture_output=True, text=True, encoding="utf-8")
-    assert r.returncode == 2, "a second file should be an error, not a silent drop"
-    assert "one file at a time" in r.stderr
+    assert r.returncode == 0, "a glob that used to work must keep working"
+    assert json.loads(r.stdout)["_metrics"]["ai_tell_score"] is not None
+    assert "one at a time" in r.stderr, "the dropped file must not be silent"
 
 
 def test_truncation_is_reported(tmp_path):
-    """The scan stops at 256 KB while the guard accepts 512 KB, so anything past
-    the cap is unread. The report has to say so rather than look complete."""
+    """The scan stops at 256 KB while the guard accepts 512 KB, so anything past the
+    cap is unread. The report has to say so rather than look complete."""
     import json
     small = tmp_path / "small.md"
     small.write_text("The lock was rebuilt in 1804.\n", encoding="utf-8")

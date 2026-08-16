@@ -1209,12 +1209,11 @@ def clean_text(text: str) -> str:
         out.append(ch)
     cleaned = "".join(out)
     cleaned = fold_mixed_script(cleaned)
-    # Exactly two spaces before a newline is a Markdown hard break, which is visible
-    # content: removing it joins two lines when the file renders. Everything else that
-    # trails a line is debris and goes.
-    cleaned = re.sub(r"(?<! ) {2}(?=\r?\n)", "\x00HB\x00", cleaned)
+    # Every run of whitespace at the end of a line goes, including the two spaces that
+    # write a Markdown hard break. Carving the break out was tried and reverted: it made
+    # the rule depend on how the file renders, which is not knowable from the text alone,
+    # and it spared the same two spaces in .txt and .rst where they are only debris.
     cleaned = re.sub(r"[ \t]+(?=\r?\n)", "", cleaned)
-    cleaned = cleaned.replace("\x00HB\x00", "  ")
     # Blank leading lines go; the first line's own indentation stays, because
     # four spaces in Markdown is a code block, not stray whitespace.
     cleaned = re.sub(r"\A(?:[ \t]*\r?\n)+", "", cleaned)
@@ -1229,8 +1228,7 @@ def detect_trailing_whitespace(text: str) -> dict:
     trailing_blanks = eof_run.count(" ") + eof_run.count("\t")
     lead = re.match(r"[ \t\r\n]+", text)
     leading_ws = len(lead.group(0)) if lead else 0
-    # A Markdown hard break is two spaces and nothing else, so it is not debris.
-    eol_spaces = len(re.findall(r"(?:(?<! ) {1}|(?<! ) {3,}|\t+| *\t[ \t]*)\r?\n", text))
+    eol_spaces = len(re.findall(r"[ \t]+\r?\n", text))
     artifact = (
         trailing_newlines >= 2
         or trailing_blanks > 0
@@ -2151,9 +2149,11 @@ def main() -> int:
                   file=sys.stderr)
             return 2
     if len(paths) > 1:
-        print(json.dumps({"error": "one file at a time; got %d. Try --help."
-                          % len(paths)}), file=sys.stderr)
-        return 2
+        # Scanning the first and dropping the rest in silence was the defect. Erroring
+        # would break a shell glob that used to work, so say so and carry on.
+        print("detect.py: %d files given; scanning %s only, one at a time is supported."
+              % (len(paths), paths[0]), file=sys.stderr)
+        del paths[1:]
     try:
         text, newline = read_source(paths)
     except (OSError, zipfile.BadZipFile) as e:
