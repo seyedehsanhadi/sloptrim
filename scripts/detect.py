@@ -1914,11 +1914,14 @@ def scan(raw_text: str) -> dict:
     # from the score, so counting them here inflated the confidence attached to
     # it: a document could be reported as having more independent evidence than
     # any of it had reached the number.
-    scored_fams = sum(1 for k in result
-                      if not k.startswith("_")
-                      and k not in _SCORE_REPORT_ONLY
-                      and k not in _SCORE_STYLE_ONLY)
-    result["_metrics"].update(score_confidence(count_words(text), scored_fams))
+    scored_fams = {
+        int(k.split("_", 1)[0])
+        for k in result
+        if not k.startswith("_")
+        and k not in _SCORE_REPORT_ONLY
+        and k not in _SCORE_STYLE_ONLY
+    }
+    result["_metrics"].update(score_confidence(count_words(text), len(scored_fams)))
 
     return result
 

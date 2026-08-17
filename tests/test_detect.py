@@ -165,6 +165,15 @@ def run_detect(text: str) -> dict:
     return json.loads(r.stdout)
 
 
+def test_confidence_counts_catalogue_families_not_detector_keys():
+    text = """The survey used several methods. These methods provide information about how residents travel between the river district and the central station on ordinary weekdays. Twelve volunteers counted bicycles at the bridge from six in the morning until the last school bus passed shortly after nine, pausing only when traffic officers closed one lane. At the same time, three clerks checked paper tickets on buses that entered the square, while another clerk recorded delays caused by road repairs near the library. Rain stopped the work briefly. When counting resumed, the team kept the morning and afternoon results separate because school traffic changed the totals after three o'clock, and mixing those periods would have hidden the difference between commuter trips and short journeys made by pupils. The final table lists each observation. It also records the date, location, direction of travel, and weather at the time, giving later readers enough detail to check the arithmetic without relying on the summary. No estimate was added where a count was missing."""
+    result = run_detect(text)
+    keys = {k for k in result if not k.startswith("_")}
+    assert keys == {"32_catalog_leadin", "32_catalog_pivot"}
+    assert result["_metrics"]["confidence"] == "low"
+    assert "1 scored pattern" in result["_metrics"]["confidence_reason"]
+
+
 def run_clean(text: str) -> str:
     r = subprocess.run(
         [sys.executable, str(DETECT), "--clean"],
