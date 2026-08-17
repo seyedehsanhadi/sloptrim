@@ -57,6 +57,22 @@ def make_xlsx(path, text=SLOP):
     return path
 
 
+def make_inline_xlsx(path, text=SLOP):
+    items = "".join(
+        '<row r="%d"><c r="A%d" t="inlineStr"><is><t>%s</t></is></c></row>'
+        % (i, i, p)
+        for i, p in enumerate(_paras(text), 1)
+    )
+    with zipfile.ZipFile(path, "w") as z:
+        z.writestr("[Content_Types].xml", '<?xml version="1.0"?><Types/>')
+        z.writestr(
+            "xl/worksheets/sheet1.xml",
+            '<?xml version="1.0"?><worksheet xmlns="%s"><sheetData>%s'
+            '</sheetData></worksheet>' % (P, items),
+        )
+    return path
+
+
 def make_odf(path, text=SLOP):
     body = "".join('<text:p>%s</text:p>' % p for p in _paras(text))
     with zipfile.ZipFile(path, "w") as z:
@@ -87,6 +103,13 @@ def test_slop_is_scored(tmp_path, ext, build):
     p = build(tmp_path / ("sample." + ext))
     score = detect.scan(detect.read_input([str(p)]))["_metrics"]["ai_tell_score"]
     assert score >= 40, "%s: dense slop scored only %d" % (ext, score)
+
+
+def test_xlsx_shared_and_inline_strings_are_read(tmp_path):
+    shared = detect.read_input([str(make_xlsx(tmp_path / "shared.xlsx"))])
+    inline = detect.read_input([str(make_inline_xlsx(tmp_path / "inline.xlsx"))])
+    assert "delve" in shared and "game-changer" in shared
+    assert "delve" in inline and "game-changer" in inline
 
 
 def test_human_prose_in_a_docx_is_not_flagged(tmp_path):

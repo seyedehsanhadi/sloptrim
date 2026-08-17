@@ -1956,7 +1956,8 @@ def score_confidence(words: int, families: int) -> dict:
 _ZIP_DOC = {
     ".docx": ("word/document.xml",), ".docm": ("word/document.xml",),
     ".pptx": ("ppt/slides/slide",), ".pptm": ("ppt/slides/slide",),
-    ".xlsx": ("xl/sharedStrings.xml",), ".xlsm": ("xl/sharedStrings.xml",),
+    ".xlsx": ("xl/sharedStrings.xml", "xl/worksheets/sheet"),
+    ".xlsm": ("xl/sharedStrings.xml", "xl/worksheets/sheet"),
     ".odt": ("content.xml",), ".odp": ("content.xml",), ".ods": ("content.xml",),
     ".epub": (".xhtml", ".html"),
 }
