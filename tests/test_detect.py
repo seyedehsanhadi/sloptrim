@@ -174,6 +174,18 @@ def test_confidence_counts_catalogue_families_not_detector_keys():
     assert "1 scored pattern" in result["_metrics"]["confidence_reason"]
 
 
+def test_great_question_needs_chatbot_punctuation():
+    human = run_detect(
+        "The committee debated whether representation was a great question in the "
+        "colonies, but the larger issue was taxation. The speaker returned to the "
+        "same great question in his closing argument and asked the audience to judge "
+        "the evidence rather than his choice of words."
+    )
+    chatbot = run_detect("Great question! I would be happy to help with that.")
+    assert "47_chatbot_artifacts" not in human
+    assert "47_chatbot_artifacts" in chatbot
+
+
 def run_clean(text: str) -> str:
     r = subprocess.run(
         [sys.executable, str(DETECT), "--clean"],

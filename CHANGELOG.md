@@ -2,6 +2,31 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- Codex `apply_patch` hook payloads are scored. Codex supplies the affected paths inside
+  `tool_input.command`, rather than the `file_path` used by Claude Code and Cursor; the
+  guard now extracts each added, updated or moved path and runs the same file scorer.
+- Ordinary prose such as “a great question in the colonies” no longer trips the chatbot
+  artefact rule. The phrase must now end like a standalone assistant response.
+- Every user-facing size claim distinguishes accepted file size from scoring coverage:
+  files are accepted up to 512 KB for plain text and 4 MB for supported archives, and the
+  detector scores the first 256 KB of extracted prose.
+- Inline strings in `.xlsx` and `.xlsm` files are extracted instead of being silently
+  omitted.
+- Formatted EPUB text preserves word boundaries and excludes navigation/style/script
+  content.
+- Confidence counts distinct scored catalogue families, so aliases from one family do
+  not inflate the result.
+- Zero-confidence results cannot trigger the guard, and `/sloptrim check` reports the
+  confidence level used by that decision.
+- Plain-text files above the accepted limit are recorded and reported as skipped rather
+  than disappearing from the session ledger.
+- `python scripts/check_docs.py` selects a Bash that can see Node on Windows instead of
+  accidentally launching the disabled WSL alias from PowerShell.
+
 ## [0.9.1] - 2026-08-17
 
 Fixes found by an external review and by an adversarial pass over the 0.9.0 line. No rule

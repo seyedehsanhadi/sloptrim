@@ -194,8 +194,24 @@ def tool(name):
     return found
 
 
+def bash_tool():
+    # PowerShell may resolve `bash` to the disabled WSL app alias. Prefer Git Bash on
+    # Windows, and prove the selected shell can run the Node-based hook suite.
+    candidates = [r"C:\Program Files\Git\bin\bash.exe", shutil.which("bash"),
+                  r"C:\Program Files\Git\usr\bin\bash.exe"]
+    seen = set()
+    for candidate in candidates:
+        if not candidate or candidate in seen or not Path(candidate).exists():
+            continue
+        seen.add(candidate)
+        probe = run([candidate, "-lc", "command -v node"])
+        if probe.returncode == 0 and probe.stdout.strip():
+            return candidate
+    raise SystemExit("check_docs: no bash that can find node is available")
+
+
 def hook_check_count():
-    out = run([tool("bash"), "tests/test_hooks.sh"])
+    out = run([bash_tool(), "tests/test_hooks.sh"])
     hit = re.search(r"hook tests: (\d+) passed, (\d+) failed", out.stdout)
     if not hit:
         raise SystemExit("check_docs: the hook suite produced no count\n"

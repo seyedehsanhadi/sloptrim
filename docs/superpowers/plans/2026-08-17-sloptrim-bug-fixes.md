@@ -420,8 +420,8 @@ Bash writes bypass hooks.
 
 Update live suite counts after collection:
 
-- `README.md`: 102 Python tests, 70 hook checks, 172 total.
-- `CONTRIBUTING.md`: 102 Python tests and 70 hook checks.
+- `README.md`: 103 Python tests, 72 hook checks, 175 total.
+- `CONTRIBUTING.md`: 103 Python tests and 72 hook checks.
 - `CHANGELOG.md`: replace the historical numeric “99/67” bullet with
   “Expanded Python and hook regression suites” so release history does not
   falsely claim today's live count.
@@ -435,7 +435,7 @@ bash tests/test_hooks.sh
 python scripts/check_docs.py
 ```
 
-Expected: 70 hook checks pass; documentation checker reports zero failures and derives 102 Python tests, 70 hook checks, 172 together.
+Expected: 72 hook checks pass; documentation checker reports zero failures and derives 103 Python tests, 72 hook checks, 175 together.
 
 - [ ] **Step 7: Commit the isolated fix**
 
@@ -465,7 +465,7 @@ python -m pytest \
 bash tests/test_hooks.sh
 ```
 
-Expected: 3 focused Python tests pass; 70 hook checks pass with 0 failures.
+Expected: 3 focused Python tests pass; 72 hook checks pass with 0 failures.
 
 - [ ] **Step 2: Run the full project verification**
 
@@ -482,7 +482,7 @@ node --check hooks/sloptrim-subagent.js
 node --check hooks/sloptrim-tracker.js
 ```
 
-Expected: 102 Python tests pass, 70 hook checks pass, documentation verification reports zero failures, and every syntax command exits 0.
+Expected: 103 Python tests pass, 72 hook checks pass, documentation verification reports zero failures, and every syntax command exits 0.
 
 - [ ] **Step 3: Inspect the final delta and repository state**
 

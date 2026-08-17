@@ -51,6 +51,12 @@ out="$(printf '{"tool_name":"Write","tool_input":{"file_path":"%s"}}' "$SLOP" | 
 echo "$out" | grep -qE "sloptrim: slop.md reads .*\(score [0-9]"; check "guard nudges on slop file" $?
 echo "$out" | grep -q "PostToolUse"; check "guard uses hookSpecificOutput" $?
 
+# Codex aliases apply_patch to Write for matching, but the canonical hook payload
+# carries changed paths inside tool_input.command rather than file_path.
+payload="$(node -e 'process.stdout.write(JSON.stringify({tool_name:"apply_patch",tool_input:{command:`*** Begin Patch\n*** Update File: ${process.argv[1]}\n@@\n-old\n+new\n*** End Patch`}}))' "$SLOP")"
+out="$(printf '%s' "$payload" | node "$REPO/hooks/sloptrim-guard.js")"
+echo "$out" | grep -q "sloptrim: slop.md"; check "guard scores a Codex apply_patch payload" $?
+
 CLEAN="$CLAUDE_CONFIG_DIR/clean.md"
 cat > "$CLEAN" <<'EOF'
 The parser reads one token at a time. If it sees an opening brace it pushes a new scope onto the stack. Closing braces pop it. Errors bubble up as exceptions, which the caller catches and reports with a line number. Most failures in practice come from unterminated strings.
@@ -166,6 +172,11 @@ node -e 'require("fs").writeFileSync(process.argv[1], "ordinary prose ".repeat(4
 printf '{"session_id":"large","tool_input":{"file_path":"%s"}}' "$LARGE" | node "$REPO/hooks/sloptrim-guard.js" >/dev/null
 out="$(echo '{"session_id":"large","prompt":"/sloptrim show"}' | node "$REPO/hooks/sloptrim-tracker.js")"
 echo "$out" | grep -q "not scored.*512 KB limit"; check "show reports an oversized prose file as skipped" $?
+TRUNC="$CLAUDE_CONFIG_DIR/truncated.md"
+node -e 'let s=""; for(let i=0;s.length<270000;i++)s+=`Record ${i} gives the measured value for ordinary item ${i}. `; require("fs").writeFileSync(process.argv[1],s)' "$TRUNC"
+printf '{"session_id":"truncated","tool_input":{"file_path":"%s"}}' "$TRUNC" | node "$REPO/hooks/sloptrim-guard.js" >/dev/null
+out="$(echo '{"session_id":"truncated","prompt":"/sloptrim show"}' | node "$REPO/hooks/sloptrim-tracker.js")"
+echo "$out" | grep -q "first 256 KB only"; check "show discloses a partial 256 KB scan" $?
 out="$(echo '{"session_id":"sess-b","prompt":"/sloptrim show"}' | node "$REPO/hooks/sloptrim-tracker.js")"
 echo "$out" | grep -q "nothing scored yet"; check "another session sees an empty ledger" $?
 echo '{"source":"startup"}' | node "$REPO/hooks/sloptrim-activate.js" >/dev/null

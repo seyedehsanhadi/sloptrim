@@ -116,7 +116,7 @@ CURLY = r"[‘’“”]"
 
 # -------------------------------------------------------- assistant artefacts
 CHATBOT = (
-    r"\b(?:I hope this helps|great question|certainly(?=!)|of course(?=!)|"
+    r"\b(?:I hope this helps|great question(?=[!.,]|$)|certainly(?=!)|of course(?=!)|"
     r"you(?:'?re| are) absolutely right|let me know if you|would you like me to|"
     r"feel free to (?:ask|reach out)|happy to help(?=[!.]|$)|"
     r"(?:here|below) is (?:a|an|the)?\s*(?:overview|summary|rundown|recap|brief(?!\s+\w))|"
