@@ -106,7 +106,7 @@ const labels = Object.entries(report)
   .slice(0, 5);
 
 const threshold = mode === 'strict' ? 20 : 40;
-const flagged = score > threshold;
+const flagged = score > threshold && m.confidence !== 'none';
 
 logDeliverable({ t: Date.now(), file: base, kind: 'scored', score,
                  band: m.ai_tell_band, tells: labels, flagged }, sid);

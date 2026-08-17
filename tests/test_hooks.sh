@@ -58,6 +58,15 @@ EOF
 out="$(printf '{"tool_name":"Write","tool_input":{"file_path":"%s"}}' "$CLEAN" | node "$REPO/hooks/sloptrim-guard.js")"
 [ -z "$out" ]; check "guard silent on clean file" $?
 
+SHORT="$CLAUDE_CONFIG_DIR/short.md"
+cat > "$SHORT" <<'EOF'
+I hope this helps. As an AI language model, I cannot assist.
+EOF
+out="$(printf '{"tool_name":"Write","tool_input":{"file_path":"%s"},"session_id":"short"}' "$SHORT" | node "$REPO/hooks/sloptrim-guard.js")"
+[ -z "$out" ]; check "guard does not act on a score with no confidence" $?
+out="$(printf '{"prompt":"/sloptrim check %s"}' "$SHORT" | node "$REPO/hooks/sloptrim-tracker.js")"
+echo "$out" | grep -q "confidence: none"; check "check exposes zero-confidence scores" $?
+
 out="$(printf '{"tool_name":"Write","tool_input":{"file_path":"%s"}}' "$REPO/scripts/detect.py" | node "$REPO/hooks/sloptrim-guard.js")"
 [ -z "$out" ]; check "guard ignores .py files" $?
 
@@ -123,7 +132,7 @@ b="$(echo '{}' | node "$REPO/hooks/sloptrim-activate.js")"
 [ "$a" = "$b" ]; check "contract byte-stable across sessions" $?
 
 echo full > "$FLAG"
-SLOPTX="In today's fast-paced world, leveraging robust synergy to foster transformative outcomes as a valuable asset."
+SLOPTX="$(cat "$SLOP")"
 covered=1
 for e in md markdown txt text rst tex org adoc; do
   f="$CLAUDE_CONFIG_DIR/deliv.$e"; printf '%s\n' "$SLOPTX" > "$f"

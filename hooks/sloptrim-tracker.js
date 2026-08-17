@@ -60,8 +60,13 @@ function check(fileArg) {
   const tells = Object.entries(rep)
     .filter(([k, v]) => !k.startsWith('_') && v && v.label)
     .map(([k, v]) => `${v.label} (x${v.count})`);
+  const confidence = m.confidence || 'unknown';
+  const confidenceLine = m.confidence_reason
+    ? `confidence: ${confidence} - ${m.confidence_reason}`
+    : `confidence: ${confidence}`;
   return [
     `${path.basename(p)} - ${verdict(m.ai_tell_score)} (score ${m.ai_tell_score}/100, band: ${m.ai_tell_band})`,
+    confidenceLine,
     tells.length ? `tells: ${tells.slice(0, 8).join('; ')}` : 'tells: none',
     'report only - say "sloptrim this file" for the rewrite.',
   ].join('\n');
