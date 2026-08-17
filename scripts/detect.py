@@ -1963,6 +1963,11 @@ _ZIP_DOC = {
 }
 _BLOCK_TAGS = {"p", "h", "br", "tab", "tr", "title", "caption"}
 _TEXT_TAGS = {"t", "seg", "span"}
+_EPUB_BLOCK_TAGS = {
+    "address", "article", "aside", "blockquote", "br", "caption", "div",
+    "footer", "h1", "h2", "h3", "h4", "h5", "h6", "header", "li",
+    "main", "nav", "p", "section", "table", "td", "th", "title", "tr",
+}
 
 
 def _local(tag: str) -> str:
@@ -1999,6 +2004,7 @@ def extract_office_text(path: str) -> str:
     wanted = _ZIP_DOC.get(ext)
     if not wanted:
         return ""
+    epub = ext == ".epub"
     out: list = []
     with zipfile.ZipFile(path) as z:
         names = [n for n in z.namelist() if any(w in n for w in wanted)]
@@ -2011,16 +2017,23 @@ def extract_office_text(path: str) -> str:
             buf: list = []
             for el in root.iter():
                 tag = _local(el.tag)
-                if tag in _TEXT_TAGS and el.text:
+                if epub:
+                    if tag in _EPUB_BLOCK_TAGS and buf and buf[-1] != "\n":
+                        buf.append("\n")
+                    if el.text:
+                        buf.append(el.text)
+                elif tag in _TEXT_TAGS and el.text:
                     buf.append(el.text)
                 elif tag in _BLOCK_TAGS:
                     if buf and buf[-1] != "\n":
                         buf.append("\n")
-                    if el.text and tag not in _TEXT_TAGS:
+                    if el.text:
                         buf.append(el.text)
-                if el.tail and el.tail.strip():
+                if el.tail and (epub or el.tail.strip()):
                     buf.append(el.tail)
             chunk = "".join(buf)
+            if epub:
+                chunk = re.sub(r"[ \t]+\n", "\n", chunk)
             if chunk.strip():
                 out.append(chunk)
     text = "\n\n".join(out)
