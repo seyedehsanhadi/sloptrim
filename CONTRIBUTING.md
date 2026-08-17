@@ -36,6 +36,22 @@ A pattern needs a number, not an impression. Put it in `references/patterns.md` 
 
 Worked examples must not invent facts, and must not name a real company, person, regulator or journal. Filling a template slot with a plausible name and address, or repairing a vague attribution by inventing a survey, is the exact failure the catalogue tells writers to avoid. `tests/test_catalogue.py` runs the detector over every After example in the catalogue and every Before example against its own pattern, so a new entry has to survive its own rule in both directions.
 
+## Cutting a release
+
+Bump the version in `.claude-plugin/plugin.json`, `CITATION.cff`, the `SKILL.md`
+frontmatter and body, and the README badge, then add the changelog entry and its tag
+link. `scripts/check_docs.py` holds all of that together and will fail if one of them
+drifts.
+
+The tag itself is the step nothing checks. `check_docs.py` cannot verify it, because a
+checkout holds whatever refs were fetched rather than what the repository has, and this
+repository never opens a socket, so it cannot ask the remote either. Cut it by hand and
+push it, or the changelog link is a 404:
+
+```bash
+git tag -a v0.9.1 -m "sloptrim 0.9.1" && git push origin v0.9.1
+```
+
 ## Regenerating the recorded session
 
 ```bash
