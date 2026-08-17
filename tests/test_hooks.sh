@@ -80,6 +80,39 @@ for name in CLAUDE.local.md AGENTS.local.md; do
   [ -z "$out" ]; check "$name is exempt like CLAUDE.md" $?
 done
 
+# The exemption is by exact name, not by stem: agents.txt and memory.txt are ordinary
+# prose a user may well write, and scoring them stopped once when this was widened.
+for name in agents.txt memory.txt claude.rst skill.tex; do
+  PF="$(dirname "$SLOP")/$name"
+  cp "$SLOP" "$PF"
+  out="$(printf '{"tool_name":"Write","tool_input":{"file_path":"%s"}}' "$PF" | node "$REPO/hooks/sloptrim-guard.js")"
+  [ -n "$out" ]; check "$name is prose and is still scored" $?
+done
+
+# Outside the prose extensions the stem is enough, so scaffolding is exempt in any format.
+SP="$(dirname "$SLOP")/skill.pdf"
+cp "$SLOP" "$SP"
+out="$(printf '{"tool_name":"Write","tool_input":{"file_path":"%s"},"session_id":"stem"}' "$SP" | node "$REPO/hooks/sloptrim-guard.js")"
+[ -z "$out" ]; check "skill.pdf is exempt the way skill.md is" $?
+
+# init writes a file other people commit, so it must not carry this machine's paths.
+IW="$(topath "$(mktemp -d)")"
+( cd "$IW" && printf '{"prompt":"/sloptrim init"}' | node "$REPO/hooks/sloptrim-tracker.js" >/dev/null 2>&1 )
+grep -q 'CLAUDE_PLUGIN_ROOT' "$IW/AGENTS.md"
+check "init writes a portable detector path into AGENTS.md" $?
+grep -qE '([A-Za-z]:[\/]|/home/|/Users/)' "$IW/AGENTS.md"
+[ $? -ne 0 ]; check "init leaks no machine path into AGENTS.md" $?
+
+# Windows "Copy as path" quotes the path; that used to be reported as an unreadable file.
+QP="$(dirname "$SLOP")/quoted draft.md"
+cp "$SLOP" "$QP"
+payload="$(printf '{"prompt":"/sloptrim check \\"%s\\""}' "$QP")"
+printf '%s' "$payload" | node -e 'JSON.parse(require("fs").readFileSync(0,"utf8"))'
+check "the quoted-path payload is valid JSON" $?
+out="$(printf '%s' "$payload" | node "$REPO/hooks/sloptrim-tracker.js")"
+echo "$out" | grep -q 'score'
+check "check accepts a quoted path" $?
+
 echo lite > "$FLAG"
 out="$(printf '{"tool_name":"Write","tool_input":{"file_path":"%s"}}' "$SLOP" | node "$REPO/hooks/sloptrim-guard.js")"
 [ -z "$out" ]; check "guard disabled in lite mode" $?

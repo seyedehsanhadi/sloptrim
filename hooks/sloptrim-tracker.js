@@ -28,6 +28,9 @@ function help() {
 
 function check(fileArg) {
   if (!fileArg) return 'sloptrim check: give a file path (/sloptrim check draft.md)';
+  // Windows "Copy as path" wraps the path in quotes and file completion prefixes an @.
+  // Both used to become part of the filename, and the file was reported as unreadable.
+  fileArg = String(fileArg).trim().replace(/^@/, '').replace(/^(["'])([\s\S]*)\1$/, '$2');
   const p = path.resolve(fileArg);
   const ext = path.extname(p).toLowerCase();
   const isOffice = OFFICE_EXT.has(ext) || NOTEBOOK_EXT.has(ext);
@@ -122,7 +125,7 @@ function init() {
   let existing = '';
   try { existing = fs.readFileSync(target, 'utf8'); } catch (e) {}
   if (existing.includes(INIT_MARKER)) return `sloptrim init: already present in ${target}\n${cursor}`;
-  const section = `\n${INIT_MARKER}\n## Prose contract\n\n${contract(readMode())}\n`;
+  const section = `\n${INIT_MARKER}\n## Prose contract\n\n${contract(readMode(), true)}\n`;
   try {
     fs.writeFileSync(target, existing ? existing.replace(/\s*$/, '\n') + section : section.trimStart());
     return `sloptrim init: prose contract written to ${target}\n${cursor}`;

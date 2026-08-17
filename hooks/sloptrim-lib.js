@@ -208,7 +208,9 @@ function sweepLedgers() {
   } catch (e) {}
 }
 
-function contract(mode) {
+// portable: the contract is going into a file that gets committed and read on other
+// machines, so it must not carry this machine's install path or the name of its user.
+function contract(mode, portable) {
   const lines = [
     `SLOPTRIM ACTIVE - level: ${mode}`,
     '',
@@ -233,7 +235,7 @@ function contract(mode) {
       : 'clean or light tells (score <= 40)';
     lines.push(
       '',
-      `After writing a prose file (.md/.txt), run: python "${DETECT}" "<file>" and read _metrics.ai_tell_score. If the band is worse than the target - ${target} - fix only the flagged spans, at most two passes, keeping rhythm variation (a flattened husk is as obvious as slop). For a deep rewrite, invoke the sloptrim skill.`
+      `After writing a prose file (.md/.txt), run: python ${portable ? '"$CLAUDE_PLUGIN_ROOT/scripts/detect.py"' : `"${DETECT}"`} "<file>" and read _metrics.ai_tell_score. If the band is worse than the target - ${target} - fix only the flagged spans, at most two passes, keeping rhythm variation (a flattened husk is as obvious as slop). For a deep rewrite, invoke the sloptrim skill.`
     );
   }
   return lines.join('\n');

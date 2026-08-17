@@ -46,13 +46,18 @@ try {
   if (rel && !rel.startsWith('..') && !path.isAbsolute(rel)) process.exit(0);
 } catch (e) { /* unresolvable path: fall through and score it */ }
 
-// Instruction files are the agent's own scaffolding, not a deliverable. Matching the
-// stem rather than the whole name means skill.pdf is as exempt as skill.md, and the
-// check runs before the binary log so neither is recorded.
+// Instruction files are the agent's own scaffolding, not a deliverable. The exempt names
+// are exact, because agents.txt and memory.txt are ordinary prose a user may well write.
+// Outside the prose extensions the stem is enough: skill.pdf is scaffolding whatever its
+// format, and matching it here rather than lower down keeps it out of the binary log too.
 const lowerBase = base.toLowerCase();
+const SKIP_NAMES = new Set(['claude.md', 'claude.local.md', 'agents.md', 'agents.local.md',
+                            'skill.md', 'memory.md']);
 const SKIP_STEMS = new Set(['claude', 'claude.local', 'agents', 'agents.local',
                             'skill', 'memory']);
-if (SKIP_STEMS.has(lowerBase.slice(0, lowerBase.length - ext.length))) process.exit(0);
+const stem = lowerBase.slice(0, lowerBase.length - ext.length);
+if (SKIP_NAMES.has(lowerBase)) process.exit(0);
+if (!PROSE_EXT.has(ext) && SKIP_STEMS.has(stem)) process.exit(0);
 
 const isOffice = OFFICE_EXT.has(ext) || NOTEBOOK_EXT.has(ext);
 if (!PROSE_EXT.has(ext) && !isOffice) {

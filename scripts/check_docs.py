@@ -299,6 +299,7 @@ CLAIMS = [
     C(r"version-(\d+\.\d+\.\d+)", VERSION),
     C(r"(?<!cff-)version: (\d+\.\d+\.\d+)", VERSION),
     C(r'"version": "(\d+\.\d+\.\d+)"', VERSION),
+    C(r"Version \*\*(\d+\.\d+\.\d+)\*\*", VERSION),
 ]
 
 if WITH_SUITES:
@@ -568,11 +569,21 @@ def code_pass():
     check("CHANGELOG.md lists each release once",
           len(releases) == len(set(releases)),
           "CHANGELOG.md repeats a release heading: %r" % (releases,))
+    # A shallow CI checkout fetches no tags, so this can only be asserted where they exist.
+    try:
+        tags = set(subprocess.run(["git", "tag", "--list"], cwd=str(REPO), text=True,
+                                  capture_output=True, timeout=20).stdout.split())
+    except (OSError, subprocess.SubprocessError):
+        tags = set()
     for rel in releases:
         check("CHANGELOG.md links the %s tag" % rel,
               re.search(r"^\[%s\]: \S+tag/v%s$" % (re.escape(rel), re.escape(rel)),
                         raw_log, flags=re.M) is not None,
               "CHANGELOG.md has a %s heading with no matching tag link" % rel)
+        if tags:
+            check("the v%s tag exists" % rel, ("v" + rel) in tags,
+                  "CHANGELOG.md links releases/tag/v%s and no such tag exists, so the "
+                  "link is a 404" % rel)
     for name, low, high in BANDS:
         check("CHANGELOG.md gives the right range for %r" % name,
               "%s (%d-%d)" % (name, low, high) in changelog,
