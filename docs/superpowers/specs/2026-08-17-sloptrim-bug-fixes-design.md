@@ -4,7 +4,7 @@ Date: 2026-08-17
 
 ## Scope
 
-Fix the five reproduced defects without changing detector weights, score bands,
+Fix the five reproduced defects without changing detector weights, band boundaries,
 thresholds, or unrelated prose rules.
 
 ## Confirmed failures

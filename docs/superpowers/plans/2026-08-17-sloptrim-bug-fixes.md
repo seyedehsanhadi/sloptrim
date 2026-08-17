@@ -130,7 +130,7 @@ def test_epub_plain_and_formatted_text_stay_in_reading_order(tmp_path):
         str(make_epub(
             tmp_path / "formatted.epub",
             '<p>Keep <em>this emphasized text</em> and '
-            '<a href="#">this link</a>.</p><ul><li>List item prose</li></ul>',
+            '<a>this link</a>.</p><ul><li>List item prose</li></ul>',
         ))
     ])
     assert plain == "Plain paragraph text."
@@ -496,4 +496,4 @@ Expected: no whitespace errors; only intended files changed; five implementation
 
 - [ ] **Step 4: Record the verdict**
 
-Report the exact before/after evidence for all five reproductions, complete suite counts, documentation result, residual limitations, and whether the worktree is clean. Do not claim benchmark accuracy; the private corpora remain outside this repository.
+Summarize each defect's RED and GREEN run, complete suite counts, documentation status, residual limitations, and whether the worktree is clean. Do not claim benchmark accuracy; the private corpora remain outside this repository.

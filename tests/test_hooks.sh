@@ -161,6 +161,11 @@ printf '{"tool_input":{"file_path":"%s"}}' "$CLAUDE_CONFIG_DIR/node_modules/pkg/
 printf '{"session_id":"sess-a","tool_input":{"file_path":"%s"}}' "$SLOP" | node "$REPO/hooks/sloptrim-guard.js" >/dev/null
 out="$(echo '{"session_id":"sess-a","prompt":"/sloptrim show"}' | node "$REPO/hooks/sloptrim-tracker.js")"
 echo "$out" | grep -q "slop.md"; check "show reads its own session's ledger" $?
+LARGE="$CLAUDE_CONFIG_DIR/large.md"
+node -e 'require("fs").writeFileSync(process.argv[1], "ordinary prose ".repeat(40000))' "$LARGE"
+printf '{"session_id":"large","tool_input":{"file_path":"%s"}}' "$LARGE" | node "$REPO/hooks/sloptrim-guard.js" >/dev/null
+out="$(echo '{"session_id":"large","prompt":"/sloptrim show"}' | node "$REPO/hooks/sloptrim-tracker.js")"
+echo "$out" | grep -q "not scored.*512 KB limit"; check "show reports an oversized prose file as skipped" $?
 out="$(echo '{"session_id":"sess-b","prompt":"/sloptrim show"}' | node "$REPO/hooks/sloptrim-tracker.js")"
 echo "$out" | grep -q "nothing scored yet"; check "another session sees an empty ledger" $?
 echo '{"source":"startup"}' | node "$REPO/hooks/sloptrim-activate.js" >/dev/null

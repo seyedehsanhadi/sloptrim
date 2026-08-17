@@ -1,7 +1,7 @@
 {
   "name": "sloptrim",
   "version": "0.9.1",
-  "description": "Scores every prose file your agent saves against a catalogue of 71 documented patterns, 62 of them with a detector behind them and 50 able to move the score, and names the ones that fired, so the flagged spans get fixed before the file ships. The 0 to 100 score lands in one of five bands: clean, light tells, mixed, heavy tells, pervasive tells. Every band describes the prose and none of them names an author. Reads 20 formats including .docx and .epub. Deterministic, Python standard library only, no network, no model. Prose only; code, config and commits stay untouched.",
+  "description": "Scores prose saved through supported file-edit tools, up to 512 KB for plain text and 4 MB for supported archives, against a catalogue of 71 documented patterns, 62 of them with a detector behind them and 50 able to move the score. It names the ones that fired so the flagged spans get fixed before the file ships. The 0 to 100 score lands in one of five bands: clean, light tells, mixed, heavy tells, pervasive tells. Every band describes the prose and none of them names an author. Reads 20 formats including .docx and .epub. Deterministic, Python standard library only, no network, no model. Prose only; code, config and commits stay untouched.",
   "author": {
     "name": "Seyed Ehsan Hadi",
     "url": "https://github.com/seyedehsanhadi"

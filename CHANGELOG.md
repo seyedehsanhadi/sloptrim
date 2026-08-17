@@ -48,7 +48,7 @@ stands.
 
 - A welcome shown once on first run: what the tool does, the four commands, and that there
   is no website, no account and no upload.
-- 99 Python tests and 67 hook checks, up from the release suite.
+- Expanded Python and hook regression suites.
 
 ### Changed
 
@@ -67,7 +67,7 @@ First release. Pre-1.0: the command surface and the score calibration may still 
 ### Added
 
 - A writing contract, injected at session start and into every subagent, that shapes prose as the agent writes it. Prose only; code, config and commits are untouched.
-- A guard on every prose file the agent saves. It scores the file 0 to 100 against a catalogue of 71 documented patterns, names the ones that fired, and asks for the flagged spans to be fixed.
+- A guard on prose saved through supported file-edit tools, up to 512 KB for plain text and 4 MB for supported archives. It scores the file 0 to 100 against a catalogue of 71 documented patterns, names the ones that fired, and asks for the flagged spans to be fixed.
 - The catalogue itself, in `references/patterns.md`, with a worked Before and After for every entry. 62 of the 71 have a detector in `scripts/detect.py`; the other 9 need a reading and are worked during the rewrite.
 - Thirteen detector rules held out of the score, as markers of formal register or of typesetting rather than of machine authorship. They fall on 13 catalogue numbers, but number 17 keeps a second rule that still scores, so 12 numbers carry no weight and 50 still do.
 - Five bands over the score: `clean` (0-20), `light tells` (21-40), `mixed` (41-60), `heavy tells` (61-80), `pervasive tells` (81-100). Each band describes the prose. None of them names an author.

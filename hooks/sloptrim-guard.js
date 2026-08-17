@@ -73,11 +73,14 @@ if (!PROSE_EXT.has(ext) && !isOffice) {
 let text = '';
 try {
   const stat = fs.statSync(filePath);
-  if (!stat.isFile() || stat.size > 4 * 1024 * 1024) process.exit(0);
-  if (!isOffice) {
-    if (stat.size > 512 * 1024) process.exit(0);
-    text = readTextFile(filePath);
+  if (!stat.isFile()) process.exit(0);
+  const limit = isOffice ? 4 * 1024 * 1024 : 512 * 1024;
+  if (stat.size > limit) {
+    logDeliverable({ t: Date.now(), file: base, kind: 'skipped',
+                     reason: 'size', size: stat.size, limit }, sid);
+    process.exit(0);
   }
+  if (!isOffice) text = readTextFile(filePath);
 } catch (e) {
   process.exit(0);
 }

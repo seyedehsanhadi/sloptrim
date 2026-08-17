@@ -104,7 +104,7 @@ function doctor() {
     : mode === 'off'
       ? `Nothing is wrong. It is switched off, so saved files are not scored. ${SELF} on turns it back on.`
       : scoreOk
-        ? `All good. It is on: every prose file saved from here is scored, and the tells are named. ${SELF} show reveals what got checked.`
+        ? `All good. It is on: prose saved through supported file-edit tools is scored within the 512 KB plain-text and 4 MB archive limits, and the tells are named. ${SELF} show reveals what got checked or skipped.`
         : `The install is sound but no file has been scored yet. Save a prose file, then ${SELF} show.`);
   return lines.join('\n');
 }
@@ -147,7 +147,9 @@ function showLedger(sid) {
   }
   const lines = ['sloptrim - prose delivered this session (newest first):'];
   for (const r of rows.slice().reverse()) {
-    if (r.kind === 'binary') {
+    if (r.kind === 'skipped' && r.reason === 'size') {
+      lines.push(`  ${r.file} - not scored: exceeds the ${r.limit / 1024} KB limit`);
+    } else if (r.kind === 'binary') {
       lines.push(`  ${r.file} - binary, shaped at write-time by the contract (not re-scored)`);
     } else {
       // Records written before this field existed carry no verdict, so say what was
