@@ -16,7 +16,7 @@ Python standard library only, no network, no model. Prose only, never code.
 [![Version](https://img.shields.io/badge/version-0.9.2-blue)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE.txt)
 [![Dependencies](https://img.shields.io/badge/dependencies-none-blue)](scripts/detect.py)
-[![Tests](https://img.shields.io/badge/tests-181-blue)](tests/)
+[![Tests](https://img.shields.io/badge/tests-191-blue)](tests/)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](scripts/detect.py)
 
 [Install](#install) &middot; [What it does](#what-it-does) &middot; [Measured](#measured) &middot; [Limits](#what-it-cannot-do) &middot; [Patterns](references/patterns.md) &middot; [Ethics](ETHICS.md)
@@ -83,7 +83,7 @@ because they are typographic habits.
 | Formats | 20, including `.docx`, `.pptx`, `.xlsx`, OpenDocument, `.epub`, `.ipynb`, LaTeX; the first 256 KB of extracted prose is scored |
 | Runs in | Claude Code, on save. Other agents via `/sloptrim init`, which writes the contract to `AGENTS.md`, and `.cursor/rules/` |
 | Needs | Node for the hooks, Python 3.9 or newer for the detector, nothing else |
-| Suite | 109 Python tests and 72 hook checks, green in CI on Linux, Windows and macOS, against Python 3.9 and 3.13 (macOS on 3.13) |
+| Suite | 119 Python tests and 72 hook checks, green in CI on Linux, Windows and macOS, against Python 3.9 and 3.13 (macOS on 3.13) |
 | Does not see | A file written by a `Bash` command, which reaches disk without passing `Write` or `Edit` |
 
 | Command | Effect |
@@ -114,12 +114,12 @@ separately. AUC is a ranking measure, not accuracy at Sloptrim's guard threshold
 | GPT-4o | **0.946** | 0.876–0.992 | 46.7% / 0% |
 | Claude 3.5 Sonnet | **0.842** | 0.729–0.936 | 3.3% / 0% |
 | o1-pro | **0.877** | 0.771–0.957 | 23.3% / 6.7% |
-| paraphrased GPT-4o | **0.837** | 0.733–0.927 | 6.7% / 3.3% |
+| paraphrased GPT-4o | **0.838** | 0.735–0.929 | 6.7% / 3.3% |
 | humanized o1-pro | **0.762** | 0.648–0.871 | 0% / 3.3% |
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/detection-dark.svg">
-  <img src="assets/detection-light.svg" width="756" alt="Public matched benchmark ROC-AUC: GPT-4o 0.946, Claude 3.5 Sonnet 0.842, o1-pro 0.877, paraphrased GPT-4o 0.837, humanized o1-pro 0.762.">
+  <img src="assets/detection-light.svg" width="756" alt="Public matched benchmark ROC-AUC: GPT-4o 0.946, Claude 3.5 Sonnet 0.842, o1-pro 0.877, paraphrased GPT-4o 0.838, humanized o1-pro 0.762.">
 </picture>
 
 Across these arms, Sloptrim achieved ROC-AUC **0.762–0.946**. Confidence intervals

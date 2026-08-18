@@ -42,7 +42,8 @@ if (!filePath) {
     .map((m) => m[1].trim());
   const moves = [...patch.matchAll(/^\*\*\* Move to:\s*(.+?)\s*$/gm)]
     .map((m) => m[1].trim());
-  const changed = [...new Set(paths.concat(moves))];
+  // Bound the fan-out of one patch.
+  const changed = [...new Set(paths.concat(moves))].slice(0, 16);
   if (!changed.length) process.exit(0);
   const { spawnSync } = require('child_process');
   const contexts = [];
@@ -51,6 +52,7 @@ if (!filePath) {
       tool_input: { ...ti, file_path: changedPath } };
     const child = spawnSync(process.execPath, [__filename], {
       input: JSON.stringify(childInput), encoding: 'utf8', env: process.env,
+      timeout: 20000, maxBuffer: 4 * 1024 * 1024,
     });
     try {
       const parsed = JSON.parse(child.stdout || '');

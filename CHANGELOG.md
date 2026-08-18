@@ -8,16 +8,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
-- Codex `apply_patch` payloads now reach the saved-file guard.
+- Codex `apply_patch` payloads reach the saved-file guard.
 - Inline strings in `.xlsx` and `.xlsm` files are extracted.
-- Formatted EPUB text keeps word boundaries and excludes navigation, style, and
-  script content.
-- Confidence counts distinct scored pattern families rather than aliases.
-- Zero-confidence results cannot trigger the guard.
-- Oversized accepted files are reported as skipped or partially scored instead
-  of disappearing or appearing fully covered.
-- Ordinary prose ending in “a great question in …” no longer triggers the
-  standalone chatbot-response rule.
+- EPUB extraction keeps word boundaries and reading order, and excludes
+  navigation, style and script content.
+- EPUB chapters using an undeclared namespace prefix are read.
+- Archive members are size-checked before they are read.
+- Confidence counts distinct scored pattern families rather than detector keys.
+- The diversity term counts each catalogue family once.
+- Zero-confidence results do not trigger the guard.
+- A single decisive pattern raises the score floor only at confidence above
+  `low`. Two distinct decisive families still raise it.
+- `47_chatbot_artifacts` and `48_sycophantic` no longer overlap.
+- `17_negative_parallelism` is report-only in one place rather than two.
+- The 256 KB scan window applies to the character rules as well.
+- Oversized files are reported as skipped or partially scored.
+- Ordinary prose containing “a great question in …” does not trigger the
+  chatbot-response rule.
+- The vocabulary rule covers every word the writing contract bans.
+- Guard child processes carry a timeout, an output cap and a fan-out limit.
 - The Windows documentation check selects a Bash installation that can run Node.
 
 ### Changed

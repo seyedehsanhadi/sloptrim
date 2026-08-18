@@ -14,7 +14,7 @@ The tool runs on your machine, reads files you point it at, and reaches no netwo
   execution to 8 seconds for piped text and 15 seconds for archive or notebook paths.
 - **A crafted document that escapes the reader.** Path traversal, unsafe archive
   handling, or unsafe XML processing is in scope.
-- **The hooks doing something outside their remit.** They read a mode flag, run the detector, and write a session ledger. Anything that writes elsewhere, executes input, or sends data anywhere is a bug and a serious one.
+- **The hooks doing something outside their remit.** They read a mode flag, run the detector, and write a session ledger. Anything that writes elsewhere, executes input, or sends data anywhere is a bug and a serious one. `/sloptrim init` is the one command that writes into your project, by request: `./AGENTS.md` and `./.cursor/rules/sloptrim.mdc`.
 - **`--clean` corrupting content.** It removes invisible characters and folds homoglyphs. Damaging legitimate text, or failing to remove what it claims to remove, is in scope.
 
 ## What is not

@@ -182,8 +182,10 @@ def test_great_question_needs_chatbot_punctuation():
         "the evidence rather than his choice of words."
     )
     chatbot = run_detect("Great question! I would be happy to help with that.")
-    assert "47_chatbot_artifacts" not in human
-    assert "47_chatbot_artifacts" in chatbot
+    assert "47_chatbot_artifacts" not in human and "48_sycophantic" not in human
+    # Flattery lives in 48 alone.
+    assert "48_sycophantic" in chatbot
+    assert "47_chatbot_artifacts" not in chatbot
 
 
 def run_clean(text: str) -> str:

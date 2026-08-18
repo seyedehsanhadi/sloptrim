@@ -23,7 +23,8 @@ AI_VOCAB = (
     r"facilitat(?:e|es|ed|ing)|encompass(?:es|ed|ing)?|harness(?:es|ed|ing)?|"
     r"holistic|paradigm|transformative|unprecedented|myriad|plethora|"
     r"robust|seamless(?:ly)?|navigat(?:e|es|ed|ing)|embark(?:s|ed|ing)?|"
-    r"craft(?:s|ed|ing)?|"
+    r"craft(?:s|ed|ing)?|landscape|journey|realm|multifaceted|"
+    r"elevat(?:e|es|ed|ing)|empower(?:s|ed|ing)?|unlock(?:s|ed|ing)?|"
     r"captures? the (?:essence|spirit|imagination|heart|magic)|"
     r"capturing the (?:essence|spirit|imagination|heart|magic))\b"
 )
@@ -103,8 +104,8 @@ CURLY = r"[‘’“”]"
 
 # -------------------------------------------------------- assistant artefacts
 CHATBOT = (
-    r"\b(?:I hope this helps|great question(?=[!.,]|$)|certainly(?=!)|of course(?=!)|"
-    r"you(?:'?re| are) absolutely right|let me know if you|would you like me to|"
+    r"\b(?:I hope this helps|certainly(?=!)|of course(?=!)|"
+    r"let me know if you|would you like me to|"
     r"feel free to (?:ask|reach out)|happy to help(?=[!.]|$)|"
     r"(?:here|below) is (?:a|an|the)?\s*(?:overview|summary|rundown|recap|brief(?!\s+\w))|"
     r"here (?:are|'?s) (?:a few|three|two|some) (?:options|drafts|versions|variations)|"
@@ -1349,7 +1350,7 @@ _SCORE_DECISIVE = {
 _SCORE_STRONG = {
     "16_ing_tail", "20_empty_pivot_phrase", "21_outcome_speculation",
     "24_self_thoroughness", "18_not_x_just_y", "27_compulsive_intro",
-    "30_diff_anchored", "17_negative_parallelism", "5_simple_yet",
+    "30_diff_anchored", "5_simple_yet",
     "69_canonical_slop", "71_degenerate_repetition",
 }
 # Keys listed here that are also demoted below never reach the weight, because the
@@ -1358,6 +1359,7 @@ _SCORE_SOFT = {
     "37_transition_cluster", "57_emojis", "2_model_dialect",
     "23_editorial_interjection",
 }
+# 17_negative_parallelism is report-only, declared once, below.
 _SCORE_STYLE_ONLY = {"60_curly_quotes", "61_hyphen_for_en_dash"}
 _SCORE_REPORT_ONLY = {
     "4_hyphen_cliche", "19_filler_phrases", "22_authority_trope",
@@ -1401,6 +1403,8 @@ def ai_tell_score(result: dict, text: str, burst: dict, para_mono: dict, punct: 
     diversity = 0.0
     content_load = 0.0
     rhythm_flags = 0
+    # Density counts every hit; diversity counts each catalogue family once.
+    counted_families = set()
     for key, val in result.items():
         if key.startswith("_") or not isinstance(val, dict):
             continue
@@ -1411,13 +1415,17 @@ def ai_tell_score(result: dict, text: str, burst: dict, para_mono: dict, punct: 
             continue
         count = min(val.get("count", 1), 5)
         weight = 3.0 if key in _SCORE_DECISIVE else 1.0 if key in _SCORE_SOFT else 1.6
+        content_load += weight * count
+        family = key.split("_", 1)[0]
+        if family in counted_families:
+            continue
+        counted_families.add(family)
         diversity += (
             16.0 if key in _SCORE_DECISIVE
             else 10.0 if key in _SCORE_STRONG
             else 2.5 if key in _SCORE_SOFT
             else 5.0
         )
-        content_load += weight * count
 
     density_bonus = min(10.0, content_load / eff * 1000 * 1.0)
     content_term = min(_CONTENT_CAP, diversity + density_bonus)
@@ -1442,10 +1450,17 @@ def ai_tell_score(result: dict, text: str, burst: dict, para_mono: dict, punct: 
                   else 0.0)
 
     score = round(min(100.0, content_term + rhythm_term + vocab_term + punct_term))
-    decisive_hits = sum(1 for k in result if k in _SCORE_DECISIVE)
+    scored = {int(k.split("_", 1)[0]) for k in result
+              if not k.startswith("_") and k not in _SCORE_REPORT_ONLY
+              and k not in _SCORE_STYLE_ONLY and k.split("_", 1)[0].isdigit()}
+    decisive_hits = len({k.split("_", 1)[0] for k in result
+                         if k in _SCORE_DECISIVE})
+    thin = score_confidence(words, len(scored))["confidence"] in ("none", "low")
     if decisive_hits >= 2:
+        # Two distinct decisive families corroborate each other.
         score = max(score, 65)
-    elif decisive_hits == 1:
+    elif decisive_hits == 1 and not thin:
+        # A lone marker needs the evidence behind it.
         score = max(score, 45)
 
     # _SCORE_STYLE_ONLY belongs here beside _SCORE_REPORT_ONLY. Without it,
@@ -1561,6 +1576,8 @@ def _reading_order(name: str) -> tuple:
 # ------------------------------------------------------------------ main scan
 def scan(raw_text: str) -> dict:
     result: dict = {}
+    # One window for every layer.
+    capped = raw_text[:_SCAN_CAP]
     text, evasion_defused = defuse_evasion(
         strip_markdown_furniture(strip_quoted_spans(strip_code(raw_text[:_SCAN_CAP])))
     )
@@ -1714,7 +1731,7 @@ def scan(raw_text: str) -> dict:
             "samples": stacked[:MAX_SAMPLES],
         }
 
-    invisible = detect_invisible_chars(raw_text)
+    invisible = detect_invisible_chars(capped)
     if invisible["count"]:
         result["62_invisible_chars"] = {
             "label": "Invisible / zero-width characters (strip)",
@@ -1722,7 +1739,7 @@ def scan(raw_text: str) -> dict:
             "samples": _labelled_samples(invisible["chars"]),
         }
 
-    nbsp = detect_nonstandard_spaces(raw_text)
+    nbsp = detect_nonstandard_spaces(capped)
     if nbsp["count"]:
         result["67_nonstandard_spaces"] = {
             "label": "Non-standard spaces (normalize to U+0020)",
@@ -1730,7 +1747,7 @@ def scan(raw_text: str) -> dict:
             "samples": _labelled_samples(nbsp["chars"]),
         }
 
-    trailing = detect_trailing_whitespace(raw_text)
+    trailing = detect_trailing_whitespace(capped)
     if trailing["artifact"]:
         tsamples: list[str] = []
         if trailing["leading_whitespace"]:
@@ -1747,7 +1764,7 @@ def scan(raw_text: str) -> dict:
             "samples": tsamples,
         }
 
-    rules = detect_decorative_rules(raw_text[:_SCAN_CAP])
+    rules = detect_decorative_rules(capped)
     if rules:
         result["70_decorative_rules"] = {
             "label": "Decorative horizontal rules",
@@ -1931,6 +1948,12 @@ _ZIP_DOC = {
 }
 _BLOCK_TAGS = {"p", "h", "br", "tab", "tr", "title", "caption"}
 _TEXT_TAGS = {"t", "seg", "span"}
+# Markup that carries no prose.
+_EPUB_SKIP_TAGS = {"head", "script", "style", "nav", "svg", "template",
+                   "noscript"}
+_EPUB_MAX_DEPTH = 100
+_ZIP_MEMBER_CAP = 32 * 1024 * 1024
+
 _EPUB_BLOCK_TAGS = {
     "address", "article", "aside", "blockquote", "br", "caption", "div",
     "footer", "h1", "h2", "h3", "h4", "h5", "h6", "header", "li",
@@ -1963,6 +1986,29 @@ def _numeric_entities(data: bytes) -> bytes:
     return _NAMED_ENTITY.sub(sub, data)
 
 
+def _strip_prefixed_attrs(blob: bytes) -> bytes:
+    """Drop namespace-prefixed attributes so an undeclared prefix cannot
+    take a whole chapter down. Attributes hold no prose."""
+    return re.sub(rb'''[ ]+[A-Za-z_][-\w.]*:[A-Za-z_][-\w.]*[ ]*=[ ]*("[^"]*"|'[^']*')''', b'', blob)
+
+
+def _epub_text(el, buf: list, depth: int = 0) -> None:
+    """Pre-order text of an XHTML tree, skipping subtrees that carry no prose."""
+    tag = _local(el.tag)
+    if tag in _EPUB_SKIP_TAGS or depth > _EPUB_MAX_DEPTH:
+        if el.tail:
+            buf.append(el.tail)
+        return
+    if tag in _EPUB_BLOCK_TAGS and buf and buf[-1] != "\n":
+        buf.append("\n")
+    if el.text:
+        buf.append(el.text)
+    for child in el:
+        _epub_text(child, buf, depth + 1)
+    if el.tail:
+        buf.append(el.tail)
+
+
 def extract_office_text(path: str) -> str:
     """Pull the visible text out of a zip-based document. Standard library only."""
     import xml.etree.ElementTree as ET
@@ -1978,27 +2024,41 @@ def extract_office_text(path: str) -> str:
         names = [n for n in z.namelist() if any(w in n for w in wanted)]
         names.sort(key=_reading_order)
         for name in names:
+            # Bound what an archive member may expand to.
             try:
-                root = ET.fromstring(_numeric_entities(z.read(name)))
-            except (ET.ParseError, KeyError):
+                if z.getinfo(name).file_size > _ZIP_MEMBER_CAP:
+                    continue
+            except KeyError:
+                continue
+            try:
+                blob = z.read(name)
+            except (KeyError, zipfile.BadZipFile, EOFError):
+                continue
+            try:
+                root = ET.fromstring(_numeric_entities(blob))
+            except ET.ParseError:
+                # Prefixed attributes carry no prose; drop them and retry.
+                try:
+                    root = ET.fromstring(_numeric_entities(_strip_prefixed_attrs(blob)))
+                except ET.ParseError:
+                    continue
+            except KeyError:
                 continue
             buf: list = []
-            for el in root.iter():
-                tag = _local(el.tag)
-                if epub:
-                    if tag in _EPUB_BLOCK_TAGS and buf and buf[-1] != "\n":
-                        buf.append("\n")
-                    if el.text:
+            if epub:
+                _epub_text(root, buf)
+            else:
+                for el in root.iter():
+                    tag = _local(el.tag)
+                    if tag in _TEXT_TAGS and el.text:
                         buf.append(el.text)
-                elif tag in _TEXT_TAGS and el.text:
-                    buf.append(el.text)
-                elif tag in _BLOCK_TAGS:
-                    if buf and buf[-1] != "\n":
-                        buf.append("\n")
-                    if el.text:
-                        buf.append(el.text)
-                if el.tail and (epub or el.tail.strip()):
-                    buf.append(el.tail)
+                    elif tag in _BLOCK_TAGS:
+                        if buf and buf[-1] != "\n":
+                            buf.append("\n")
+                        if el.text:
+                            buf.append(el.text)
+                    if el.tail and el.tail.strip():
+                        buf.append(el.tail)
             chunk = "".join(buf)
             if epub:
                 chunk = re.sub(r"[ \t]+\n", "\n", chunk)
