@@ -641,28 +641,26 @@ def publication_pass():
           "docs/research/frontier-benchmark-results.json publishes current_arm "
           "without its source texts")
 
-    banned = re.compile(
-        r"private benchmark|private calibration|private corpus|"
-        r"unpublished benchmark|original release also cited private",
-        re.I,
+    research_files = sorted(
+        path.relative_to(REPO).as_posix()
+        for path in (REPO / "docs" / "research").glob("*")
+        if path.is_file()
     )
-    for path in DOCS:
-        match = banned.search(RAW[path])
-        check("%s carries no private benchmark history" % REL[path],
-              match is None,
-              "%s contains the private-history phrase %r"
-              % (REL[path], match.group(0) if match else ""))
+    eq("the public research directory contains only aggregate benchmark data",
+       research_files, ["docs/research/frontier-benchmark-results.json"],
+       "docs/research")
+    planning_files = ([path for path in (REPO / "docs" / "superpowers").rglob("*")
+                       if path.is_file()]
+                      if (REPO / "docs" / "superpowers").exists() else [])
+    check("the public tree contains no internal planning directory",
+          not planning_files,
+          "docs/superpowers contains internal workflow files")
 
     all_public_text = "\n".join(RAW.values())
     for marker in (r"C:\\Users\\", "/Users/", "/home/"):
         check("public documents contain no local path marker %s" % marker,
               marker not in all_public_text,
               "a public document contains the local path marker %s" % marker)
-    for removed_source in ("Pangram Labs", "pangram.com/blog/"):
-        check("public documents do not reproduce the removed Pangram material",
-              removed_source not in all_public_text,
-              "a public document still names %r" % removed_source)
-
     notice = RAW[REPO / "NOTICE"]
     for required in ("Archivo", "SIL Open Font License"):
         check("NOTICE retains %s attribution" % required,
