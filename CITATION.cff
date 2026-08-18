@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 title: "sloptrim: a deterministic prose-quality detector and always-on writing contract"
-message: "If you use this software or the measurements cited below, please cite it. This is a pre-1.0 release; the interfaces and the score calibration may still change."
+message: "If you use this software or its published measurements, please cite it. This is a pre-1.0 release; interfaces and score calibration may still change."
 type: software
 authors:
   - family-names: Hadi
@@ -16,24 +16,12 @@ keywords:
   - large language models
   - research software
 abstract: >-
-  sloptrim scores prose against a catalogue of 71 documented patterns of
-  machine-flavoured writing and asks the writer to fix what it flags. 62 of the
-  71 have a detector in scripts/detect.py; the other 9 need a reading. Thirteen
-  of the 62 rules are held out of the score as markers of formal register or of
-  typesetting rather than of machine authorship. They fall on thirteen
-  catalogue numbers, but number 17 keeps a second rule that still scores, so 12
-  numbers carry no weight and 50 still do. The detector is deterministic, uses
-  only the Python standard library, and opens no socket, which a test enforces
-  by walking every script in the repository. It is a writing-quality
-  instrument and not an authorship classifier: the score counts documented
-  patterns and says nothing about who or what wrote the document.
-
-  A public matched benchmark contains five experiments with 30 human and 30
-  machine articles per arm. Sloptrim's score achieved ROC-AUC 0.762 to 0.946
-  across GPT-4o, Claude 3.5 Sonnet, o1-pro, paraphrased GPT-4o and humanized
-  o1-pro. A separate date-stamped 30-pair GPT-5.6 Sol run achieved ROC-AUC
-  0.965, while the normal guard threshold flagged none of its generated
-  articles and strict mode flagged 12 of 30. These are style-ranking results,
-  not evidence of authorship. The protocol, confidence intervals, source
-  revision, hashes and limitations are recorded in
-  docs/research/frontier-benchmark-results.md.
+  sloptrim is a deterministic local prose-pattern linter and writing contract.
+  It documents 71 patterns, automates 62 of them, and reports which patterns
+  occur without claiming who or what wrote the document. 50 can move the
+  score; 12 are reported as writing advice. The runtime uses standard-library
+  Python and Node.js and opens no network connection. On five public matched
+  Human Detectors arms with 30 human and 30 machine articles each, its score
+  achieved ROC-AUC 0.762 to 0.946. These are ranking results, not authorship or
+  per-document accuracy claims. The benchmark's pinned source, aggregate results,
+  confidence intervals, and offline reproduction harness ship with the repository.

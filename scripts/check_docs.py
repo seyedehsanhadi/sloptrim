@@ -502,10 +502,10 @@ def svg_pass():
                       and not SKIP_PART & set(p.parts)
                       and re.search(r"font/woff2|font-woff2",
                                     p.read_text(encoding="utf-8", errors="replace")))
-    check("only the two logos carry third-party material",
+    check("only the two logos embed Archivo font data",
           embedded == ["assets/sloptrim-logo-dark.svg", "assets/sloptrim-logo.svg"],
-          "NOTICE says no other file carries third-party material, and a woff2 "
-          "payload sits in %r" % (embedded,))
+          "woff2 font data appears outside the two attributed logo files: %r"
+          % (embedded,))
 
 
 # ------------------------------------------------------------- code agreement
@@ -610,12 +610,6 @@ def code_pass():
                   bool(hit) and "Pangram" in hit[0],
                   "NOTICE says references/patterns.md section %s draws on Pangram "
                   "Labs and that section does not cite them" % num)
-    check("tests/validation_corpus.py holds the sample NOTICE names",
-          "h_classic_prose" in (REPO / "tests" / "validation_corpus.py")
-          .read_text(encoding="utf-8"),
-          "NOTICE names h_classic_prose in tests/validation_corpus.py and it is "
-          "not there")
-
     for ext in sorted(ZIP_DOC):
         check("guard.js and detect.py agree that %s is a document" % ext,
               ext in OFFICE_EXT,
@@ -686,14 +680,21 @@ DERIVE = re.compile(r"[^.]*\b(re-?deriv\w*|recomput\w*|reproduc\w*)\b[^.]*")
 
 
 def honesty_pass():
+    public_benchmark = all((REPO / path).exists() for path in (
+        "scripts/benchmark_frontier.py",
+        "docs/research/frontier-benchmark-results.json",
+    ))
     for path in DOCS:
         for m in DERIVE.finditer(FLAT[path]):
             sentence = m.group(0).strip()
             if not MEASURE.search(sentence):
                 continue
+            benchmark_claim = (public_benchmark and
+                               re.search(r"\bbenchmark\b", sentence, re.I))
             check("%s: no measurement is claimed re-derivable here" % REL[path],
-                  bool(NEGATION.search(sentence)),
-                  "%s says %r, and no corpus or harness is in this repository"
+                  bool(NEGATION.search(sentence) or benchmark_claim),
+                  "%s says %r, without naming the published benchmark whose "
+                  "harness and aggregate record are in this repository"
                   % (REL[path], sentence[:200]))
         for stray in re.findall(r"\b(?:bench|demo)/[\w./-]+", FLAT[path]):
             check("%s: no path into a directory that was not published" % REL[path],

@@ -1376,35 +1376,13 @@ _SCORE_REPORT_ONLY = {
     "4_hyphen_cliche", "19_filler_phrases", "22_authority_trope",
     "41_mechanical_alternation", "55_contraction_absence",
     "68_trailing_whitespace",
-    # Both failed the same test the six above failed, on a corpus fetched after
-    # the pattern set was frozen: 9,333 documents from 30 real American
-    # textbooks. 42_opener_repetition fires on 3.5% of that human prose and 0.2%
-    # of machine prose written to imitate it, a lift of 0.06, and it was already
-    # only 1.08 on the main corpus at precision 0.68. 54_hedge_stacking is 0.51
-    # there and 1.23 on the main corpus; academic prose hedges, which is register
-    # rather than authorship. Dropping both cuts textbook false positives from
-    # 5.7% to 3.9% and raises main-corpus recall at one false positive from 34.0%
-    # to 40.7%, with ROC-AUC unchanged. Measured in the private benchmark, which
-    # is not part of this repository, so it cannot be re-derived here.
+    # Openers and hedge stacking are ordinary features of formal prose. Reporting
+    # them remains useful editing advice; scoring them would manufacture false
+    # positives from register rather than identify a prose-quality defect.
     "42_opener_repetition", "54_hedge_stacking",
-    # Three more, demoted on agreement between two corpora rather than one. Each
-    # fires more on human prose than on machine prose on BOTH the textbook corpus
-    # and the protocol corpora, which is what separates a real defect from one
-    # corpus being unusual.
-    #   58_em_dash_overuse       lift 0.30 protocol, 0.70 textbook. It fires on
-    #                            19.8% of human documents and 5.9% of machine
-    #                            ones. The belief that an em-dash marks machine
-    #                            writing is backwards, and scoring it manufactures
-    #                            false positives on people who punctuate well.
-    #   17_negative_parallelism  0.67 protocol, 0.60 textbook.
-    #   46_punctuation_underuse  0.86 protocol, 0.71 textbook. Counting semicolons
-    #                            measures house style, not authorship.
-    # Textbook false positives fall 3.9% to 1.6%, clearing the 2% line this
-    # project set for itself; textbook ROC-AUC rises 0.942 to 0.958 and recall at
-    # zero false positives 8.8% to 15.1%. The main corpus pays 1.4 points of
-    # recall at zero false positives and gains 0.002 ROC-AUC. Measured in the
-    # private benchmark, which is not part of this repository, so it cannot be
-    # re-derived here.
+    # Em dashes, negative parallelism, and sparse semicolon/parenthesis use also
+    # vary with house style and register. Keep the detections visible, but do not
+    # turn those typography and rhetoric choices into score weight.
     "58_em_dash_overuse", "17_negative_parallelism", "46_punctuation_underuse",
 }
 _SCORE_RHYTHM = {"40_sentence_monotony", "55_contraction_absence", "41_mechanical_alternation"}

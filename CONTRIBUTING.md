@@ -14,18 +14,14 @@ Both suites are offline and need no fixture beyond the repository. CI runs them,
 
 ## Before a change to the detector
 
-Two rules govern the scoring set, and neither one can be checked from here.
+A scored pattern must not create more false positives than the evidence supports.
+Thirteen detector rules are held out of the score because they are better treated
+as register or typesetting advice.
 
-**A scored pattern may not fire more on human writing than on machine writing.** A rule that argues against its own conclusion is worse than no rule. Thirteen detector rules are held out of the score, most of them for failing that test and the rest for measuring typesetting instead of authorship. The measurements behind the demotions sit in the comments around `_SCORE_REPORT_ONLY` in `scripts/detect.py`.
-
-**A scoring change must hold on a corpus this project tuned on and one it has never seen.** A change that helps one and hurts the other is overfitting.
-
-The private calibration harness that measures both, and every corpus it reads,
-is not part of this repository. `scripts/benchmark_frontier.py` independently
-re-derives the public Human Detectors figures from a pinned local download; it
-does not contain the tuning corpora or replace the two-corpus scoring gate. A
-proposal that changes scoring must therefore arrive with its own measurement,
-or wait for the maintainer to run the private calibration.
+A scoring proposal must include a reproducible matched evaluation and a human-prose
+false-positive analysis. `scripts/benchmark_frontier.py` reproduces the published
+Human Detectors benchmark from its pinned upstream file; contributors may add other
+lawfully obtained corpora without committing their source text.
 
 ## Conventions
 
@@ -54,7 +50,7 @@ repository never opens a socket, so it cannot ask the remote either. Cut it by h
 push it, or the changelog link is a 404:
 
 ```bash
-git tag -a v0.9.1 -m "sloptrim 0.9.1" && git push origin v0.9.1
+git tag -a v0.9.2 -m "sloptrim 0.9.2" && git push origin v0.9.2
 ```
 
 ## Regenerating the recorded session
