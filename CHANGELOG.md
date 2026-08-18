@@ -25,6 +25,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Published a reproducible five-arm matched benchmark with pinned source revision,
   file hash, confidence intervals, threshold rates, aggregate results, and an
   offline standard-library harness. ROC-AUC is described as ranking, not accuracy.
+- Narrowed the vocabulary rule to a compact project-maintained core set and
+  regenerated the affected benchmark and recorded-demo evidence.
 
 ## [0.9.1] - 2026-08-17
 

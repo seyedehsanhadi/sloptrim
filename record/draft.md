@@ -1,6 +1,6 @@
 **Discover the joy of reading this summer!** 📚
 
-Whether you are a lifelong bookworm or just getting started, our summer reading challenge makes building a habit effortless. The intuitive tracker allows you to log every book, celebrate every milestone, and unlock rewards that keep you motivated.
+Whether you are a lifelong bookworm or just getting started, our summer reading challenge makes building a habit seamless. The intuitive tracker allows you to log every book, celebrate every milestone, and unlock rewards that keep you motivated.
 
 **What you get:**
 ✅ A personalised reading list

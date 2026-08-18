@@ -13,24 +13,17 @@ Patterns split into two classes:
 
 ### 1. AI vocabulary
 
-Era-variable. Refresh these lists every release.
+Era-variable. The detector deliberately keeps this list short; individual words
+are common in human prose, so only a dense cluster affects the score.
 
-**Core (model-agnostic, persistent since 2022):** additionally, align with, crucial, delve, emphasizing, enduring, enhance, fostering, garner, highlight, interplay, intricate, key (adj.), landscape (abstract), pivotal, showcase, tapestry, testament, underscore, valuable, vibrant, leverage, utilize, facilitate, encompass, harness, holistic, paradigm, transformative, unprecedented, myriad, plethora, robust, seamless, navigate (figurative), embark.
-
-The lists below are drawn from Pangram Labs' measurements of words over-represented in AI text, alphabetized here. Source for every Pangram figure in this catalogue: Pangram Labs, *Comprehensive Guide to Spotting AI Writing Patterns*, <https://www.pangram.com/blog/comprehensive-guide-to-spotting-ai-writing-patterns>, retrieved 2026-08-12. Every Pangram number quoted below is their published figure, reproduced as a citation; nothing in this project measured or independently confirmed one. Pangram groups them by part of speech; the groupings below are ours, and a word may sit under a heading that does not match its strict grammatical class.
-
-**Over-represented, group A:** aim, aspect, challenges, climate, community, complexities, component, comprehensive, deepens, depth, development, diverse, dynamics, elegant, elevate, elucidate, embodies, embrace, empower, endeavor, endurance, enlightenment, era, exploration, facet, foster, grapple, groundwork, illuminate, imperative, innovate, innovation, insight, inspiration, integrate, journey, kaleidoscope, lens, manifold, meaningful, moreover, navigate, nuance, paramount, pivot, poignant, possibilities, profound, quest, realm, reimagine, relentless, resonance, resonate, revolution, roadmap, significance, strive, symphony, timeless, tireless, toolkit, transcend, unleash, unlock, unravel, vital, vivid, weave.
-
-**Over-represented, group B (inflected forms):** aiming, capturing, confronted, crafted, curated, deepen, delving, drawing, elevated, embarked, embodying, embraced, emulated, endeavored, endured, enhanced, enlightening, ensure, entwining, espousing, evoked, evolving, exacerbating, exemplifying, explored, fostered, grappling, illuminating, inspiring, intertwining, navigated, pivoting, reimagining, resonating, revealing, reverberating, revolutionizing, showcased, striving, transcending, unlocking, unraveling, valuing, weaving.
-
-**Pangram adjectives:** aimless, authentic, commendable, dynamic, elusive, endurable, essential, exemplary, grand, indelible, innovative, inspirational, invaluable, meticulous, notable, nuanced, powerful, sustainable, whimsical.
-
-**Pangram adverbs:** aimlessly, aptly, creatively, critically, crucially, dynamically, elusively, indelibly, insightfully, intricately, invaluably, merely, meticulously, notably, pivotally, poignantly, powerfully, profoundly, relentlessly, seamlessly, significantly, timelessly, tirelessly, vibrantly, vividly.
-
-**Era-specific high-density words (refresh per release):**
-- GPT-4 era (2023–mid-2024): delve, tapestry, testament, intricate, bolstered, garner.
-- GPT-4o era (mid-2024–mid-2025): align with, bolstered, emphasizing, enhance, fostering, highlighting, showcasing.
-- GPT-5 era (mid-2025+): emphasizing, enhance, highlighting, showcasing.
+**Current detector vocabulary:** additionally, align with, crucial, delve,
+tapestry, pivotal, vibrant, meticulous, testament, underscore, intricate,
+interplay, garner, bolster, foster, showcase, emphasize, enduring, enhance,
+leverage, utilize, facilitate, encompass, harness, holistic, paradigm,
+transformative, unprecedented, myriad, plethora, robust, seamless, navigate,
+embark, and craft, including ordinary inflections. Closed phrases such as “captures
+the essence” are also included. This is a functional specification of the
+published rule, not a frequency claim about any individual word.
 
 **Before:** Additionally, the enduring appeal of Vantry's grey-iron skillets is a testament to the foundry's craftsmanship, showcasing how traditional casting methods continue to integrate seamlessly into the modern culinary landscape.
 
@@ -106,15 +99,14 @@ AI cycles synonyms for the same referent across consecutive sentences. If three 
 
 **After:** The company was founded in a rented shed and took on its first apprentice in 1974. By 1990 it employed sixty people and cast for the whole county.
 
-### 9. AI character names in fiction
+### 9. Generic character naming in fiction
 
-Pangram Labs reports that 60–70 % of the names appearing in AI-generated articles from ChatGPT and Claude are `Emily` or `Sarah` (<https://www.pangram.com/blog/comprehensive-guide-to-spotting-ai-writing-patterns>). The same clustering shows up in fiction, where `Michael`, `Mark`, and `David` recur for men. The names repeat because they are the highest-probability tokens in these contexts.
+**Apply in fiction only.** A familiar given name is never a tell by itself.
 
-**Apply in fiction only.** Encyclopedic content about real people named Emily or Sarah is not a tell.
+**Watch for:** a character receiving the first generic name that fits the prompt,
+with no surname, background, or detail that makes the choice feel deliberate.
 
-**Watch for:** unnamed-fiction prompts (`write a short story about a marketing executive…`) returning protagonists named Emily, Sarah, Michael, Mark, or David, especially without surnames.
-
-**Before:** Sarah walked into the office, her coffee in one hand and her laptop in the other.
+**Before:** Ava walked into the office, her coffee in one hand and her laptop in the other.
 
 **After:** Marjit walked into the office with her coffee and laptop, already late for the 9:15.
 
@@ -474,7 +466,9 @@ Three or more paragraphs marching through the same shape — claim, then evidenc
 
 ### 46. Semicolon and parenthesis underuse
 
-Pangram Labs lists semicolons and parentheses among the punctuation AI writing tends not to reach for (<https://www.pangram.com/blog/comprehensive-guide-to-spotting-ai-writing-patterns>). The rates below are this catalogue's rule of thumb rather than a figure of theirs: in a 1000-word passage of opinion or essay writing, expect at least 1–2 semicolons and 2–4 parentheticals. AI prose often has zero of both.
+Across a passage of at least 500 words, the detector reports this advice when it
+finds no semicolon and fewer than two parenthetical pairs. The rule carries no
+score weight because punctuation varies with register and house style.
 
 **Apply only as a document-level diagnostic, not a sentence-level rewrite rule.** Do not insert semicolons mechanically; instead, rewrite a passage to use one where the rhythm calls for it.
 

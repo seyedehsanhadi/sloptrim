@@ -456,13 +456,17 @@ def svg_pass():
     for match in re.finditer(
             r"^\| ([^|]+?) \| \*\*(0\.\d{3})\*\* \| ([^|]+?) \| ([^|]+?) \|$",
             RAW[REPO / "README.md"], re.M):
-        tabled[match.group(1)] = match.group(2)
+        tabled[match.group(1)] = {
+            "auc": match.group(2),
+            "ci": match.group(3).strip(),
+            "default": match.group(4).strip(),
+        }
     check("the detection chart renders five figures", len(figures) == 5,
           "assets/detection-light.svg renders %r" % (figures,))
     eq("the detection chart matches the canonical arm-to-AUC mapping",
        charted, canonical, "assets/detection-light.svg")
-    eq("the README table matches the canonical arm-to-AUC mapping",
-       tabled, canonical, "README.md")
+    eq("the README table matches every canonical benchmark value",
+       tabled, record["public_arms"], "README.md")
     joined = " ".join(demo_l)
     hit = re.search(r"(\d+)/(\w+)", joined)
     check("the demo SVG still renders a score and band", hit is not None,
@@ -601,15 +605,6 @@ def code_pass():
               "detect.py puts %r at %d-%d and CHANGELOG.md does not say so"
               % (name, low, high))
 
-    for section in re.findall(r"sections ([\d, and]+) are drawn from Pangram",
-                              FLAT[REPO / "NOTICE"]):
-        for num in re.findall(r"\d+", section):
-            body = re.split(r"^### ", PATTERNS, flags=re.M)
-            hit = [b for b in body if b.startswith(num + ". ")]
-            check("patterns.md section %s cites Pangram" % num,
-                  bool(hit) and "Pangram" in hit[0],
-                  "NOTICE says references/patterns.md section %s draws on Pangram "
-                  "Labs and that section does not cite them" % num)
     for ext in sorted(ZIP_DOC):
         check("guard.js and detect.py agree that %s is a document" % ext,
               ext in OFFICE_EXT,
@@ -663,9 +658,13 @@ def publication_pass():
         check("public documents contain no local path marker %s" % marker,
               marker not in all_public_text,
               "a public document contains the local path marker %s" % marker)
+    for removed_source in ("Pangram Labs", "pangram.com/blog/"):
+        check("public documents do not reproduce the removed Pangram material",
+              removed_source not in all_public_text,
+              "a public document still names %r" % removed_source)
 
     notice = RAW[REPO / "NOTICE"]
-    for required in ("Archivo", "SIL Open Font License", "Pangram Labs"):
+    for required in ("Archivo", "SIL Open Font License"):
         check("NOTICE retains %s attribution" % required,
               required in notice,
               "NOTICE no longer contains %r" % required)

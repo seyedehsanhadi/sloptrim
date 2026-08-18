@@ -8,7 +8,7 @@ description: >-
   local detector, preserves numbers, names and citations, and rebuilds toward a
   human voice rather than a flat husk. Mode-aware, so it never fabricates voice
   on factual content.
-version: 0.9.1
+version: 0.9.2
 license: Apache-2.0
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash
 argument-hint: The text to trim, or a file path
@@ -229,4 +229,4 @@ Removing AI patterns is half the job; fill the space with patterns a person writ
 
 ## Reference
 
-The catalogue folds publicly documented signs of AI writing with newer model-specific tells; all worked examples in `references/patterns.md` are original, and the lexical layer (#1) is the refresh point as model vocabularies shift. Scope is rewriting, not detection; defeating institutional integrity systems is out of scope. Version **0.9.1**.
+The catalogue folds publicly documented signs of AI writing with newer model-specific tells; all worked examples in `references/patterns.md` are original, and the lexical layer (#1) is the refresh point as model vocabularies shift. Scope is rewriting, not detection; defeating institutional integrity systems is out of scope. Version **0.9.2**.

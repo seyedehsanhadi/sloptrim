@@ -13,7 +13,7 @@ prose in files saved through supported file-edit tools—accepting plain text up
 Python standard library only, no network, no model. Prose only, never code.
 
 [![test](https://github.com/seyedehsanhadi/sloptrim/actions/workflows/test.yml/badge.svg)](https://github.com/seyedehsanhadi/sloptrim/actions/workflows/test.yml)
-[![Version](https://img.shields.io/badge/version-0.9.1-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.9.2-blue)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE.txt)
 [![Dependencies](https://img.shields.io/badge/dependencies-none-blue)](scripts/detect.py)
 [![Tests](https://img.shields.io/badge/tests-180-blue)](tests/)
@@ -114,7 +114,7 @@ separately. AUC is a ranking measure, not accuracy at Sloptrim's guard threshold
 | GPT-4o | **0.946** | 0.876–0.992 | 46.7% / 0% |
 | Claude 3.5 Sonnet | **0.842** | 0.729–0.936 | 3.3% / 0% |
 | o1-pro | **0.877** | 0.771–0.957 | 23.3% / 6.7% |
-| paraphrased GPT-4o | **0.837** | 0.733–0.928 | 6.7% / 3.3% |
+| paraphrased GPT-4o | **0.837** | 0.733–0.927 | 6.7% / 3.3% |
 | humanized o1-pro | **0.762** | 0.648–0.871 | 0% / 3.3% |
 
 <picture>
