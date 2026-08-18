@@ -8,8 +8,8 @@
 </h1>
 
 **A local detector for AI-writing patterns. It scores the first 256 KB of extracted
-prose in files saved through supported file-edit tools—accepting plain text up to
-512 KB and supported archives up to 4 MB—and asks for the flagged spans to be fixed.**
+prose in files saved through supported file-edit tools, and asks for the flagged
+spans to be fixed. Plain text is accepted up to 512 KB, supported archives up to 4 MB.**
 Python standard library only, no network, no model. Prose only, never code.
 
 [![test](https://github.com/seyedehsanhadi/sloptrim/actions/workflows/test.yml/badge.svg)](https://github.com/seyedehsanhadi/sloptrim/actions/workflows/test.yml)
