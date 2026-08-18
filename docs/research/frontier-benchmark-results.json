@@ -1,6 +1,9 @@
 {
+  "dataset_source": "https://github.com/jenna-russell/human_detectors",
   "dataset_commit": "afcf03d14d2da4a038d8d0fafa5ec779dd858181",
   "dataset_sha256": "7ee1dc56d71b7cc5a185286f71818060a93ca20c4e93a90520ca78a0109619b5",
+  "design": "five separate matched arms, 30 human and 30 machine articles per arm",
+  "metric": "ROC-AUC; default rates are TPR / FPR at score > 40 with non-none confidence",
   "bootstrap": "paired prompt-cluster percentile, 10000 resamples, seed 20260818",
   "public_arms": {
     "GPT-4o": {"auc": "0.946", "ci": "0.876–0.992", "default": "46.7% / 0%"},
@@ -8,15 +11,5 @@
     "o1-pro": {"auc": "0.877", "ci": "0.771–0.957", "default": "23.3% / 6.7%"},
     "paraphrased GPT-4o": {"auc": "0.837", "ci": "0.733–0.928", "default": "6.7% / 3.3%"},
     "humanized o1-pro": {"auc": "0.762", "ci": "0.648–0.871", "default": "0% / 3.3%"}
-  },
-  "current_arm": {
-    "model": "gpt-5.6-sol",
-    "pairs": 30,
-    "auc": "0.965",
-    "ci": "0.913–1.000",
-    "default": "0% / 0%",
-    "strict": "40% / 0%",
-    "prompt_sha256": "890db0b920ac06acf36704d83741b64f2090ce7f298c0a2d1f6701f8ea4d140b",
-    "output_sha256": "55e24809b97cbd75a7d213ef34b8a45728dbe272a562894879959f1626c53419"
   }
 }

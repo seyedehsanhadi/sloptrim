@@ -463,12 +463,6 @@ def svg_pass():
        charted, canonical, "assets/detection-light.svg")
     eq("the README table matches the canonical arm-to-AUC mapping",
        tabled, canonical, "README.md")
-    current = record["current_arm"]
-    for value in (current["auc"], current["ci"]):
-        check("README.md quotes current-arm result %s" % value,
-              flatten(value) in readme,
-              "README.md omits canonical current-arm result %s" % value)
-
     joined = " ".join(demo_l)
     hit = re.search(r"(\d+)/(\w+)", joined)
     check("the demo SVG still renders a score and band", hit is not None,

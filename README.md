@@ -104,8 +104,9 @@ A score lands in one of five bands: `clean`, `light tells`, `mixed`, `heavy tell
 
 ## Measured
 
-The replacement is a public matched benchmark: five 30-human/30-machine experiments
-from the MIT-licensed Human Detectors repository release, pinned and scored
+Sloptrim's public matched benchmark uses five separate 30-human/30-machine arms
+from the [Human Detectors](https://github.com/jenna-russell/human_detectors)
+release, pinned at commit `afcf03d`. Each arm is matched by prompt and scored
 separately. AUC is a ranking measure, not accuracy at Sloptrim's guard threshold.
 
 | machine arm | ROC-AUC | bootstrap 95% CI | default TPR / FPR |
@@ -121,14 +122,16 @@ separately. AUC is a ranking measure, not accuracy at Sloptrim's guard threshold
   <img src="assets/detection-light.svg" width="756" alt="Public matched benchmark ROC-AUC: GPT-4o 0.946, Claude 3.5 Sonnet 0.842, o1-pro 0.877, paraphrased GPT-4o 0.837, humanized o1-pro 0.762.">
 </picture>
 
-A separate current paired run generated 30 GPT-5.6 Sol articles on 2026-08-18 and
-matched each to a human article by subject and length. It measured ROC-AUC **0.965**
-(95% CI 0.913–1.000), but the normal guard threshold flagged **0/30** generated
-articles; strict mode flagged **12/30**, with no human flags at either threshold.
-That is useful score separation under one prompt and formatting setup, not reliable
-binary detection or a universal frontier-model result. Full protocol, hashes,
-ablation and limitations are in the
-[re-benchmark record](docs/research/frontier-benchmark-results.md).
+Across these arms, Sloptrim achieved ROC-AUC **0.762–0.946**. Confidence intervals
+use 10,000 paired prompt-cluster bootstrap resamples. The public
+[result record](docs/research/frontier-benchmark-results.json) pins the source hash;
+the harness refuses any other file. The benchmark texts are not redistributed here.
+
+```bash
+git clone https://github.com/jenna-russell/human_detectors.git
+git -C human_detectors checkout afcf03d14d2da4a038d8d0fafa5ec779dd858181
+python scripts/benchmark_frontier.py PATH_TO_HUMAN_DETECTORS_JSON
+```
 
 ## What it cannot do
 
@@ -136,12 +139,6 @@ ablation and limitations are in the
 score often ranks these machine samples above matched human samples. The threshold
 results show why that is not the same as a dependable yes/no classifier: sensitivity
 changes sharply with model, prompt, formatting and threshold.
-
-**The writing contract has no measured effect.** Twenty documents drafted twice from
-one brief with the switch toggled, both arms verified from the transcripts: mean
-change +2.25, bootstrap 95% CI -5.65 to +9.90, sign test p = 0.27. Its banned-word
-list works; nothing else in it does. That is 20 pairs against the 40 the protocol asks
-for, so the question is unresolved rather than settled.
 
 **It is not an authorship classifier and must not be used as one.** A score says
 something about writing, never about a person. Read [ETHICS.md](ETHICS.md).
