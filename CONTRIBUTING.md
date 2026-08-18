@@ -5,7 +5,7 @@ The most useful thing you can send is **a document this scores wrongly**: human 
 ## Running the checks
 
 ```bash
-python -m pytest tests/ -q      # 103 tests
+python -m pytest tests/ -q      # 108 tests
 bash tests/test_hooks.sh        # 72 hook checks
 python scripts/detect.py FILE   # JSON: patterns, metrics, the 0-100 score and its band
 ```
@@ -20,7 +20,12 @@ Two rules govern the scoring set, and neither one can be checked from here.
 
 **A scoring change must hold on a corpus this project tuned on and one it has never seen.** A change that helps one and hurts the other is overfitting.
 
-The harness that measures both, and every corpus it reads, is held privately and is not part of this repository. Nothing here re-derives a published figure, so a proposal that turns on one has to arrive with its own measurement, or wait for the maintainer to run it.
+The private calibration harness that measures both, and every corpus it reads,
+is not part of this repository. `scripts/benchmark_frontier.py` independently
+re-derives the public Human Detectors figures from a pinned local download; it
+does not contain the tuning corpora or replace the two-corpus scoring gate. A
+proposal that changes scoring must therefore arrive with its own measurement,
+or wait for the maintainer to run the private calibration.
 
 ## Conventions
 

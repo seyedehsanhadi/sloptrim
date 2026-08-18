@@ -24,4 +24,4 @@ The tool runs on your machine, reads files you point it at, and reaches no netwo
 
 A one-word mode flag, and a per-session ledger written with owner-only permissions: for each prose file, its base name, the score, the band, and up to five pattern labels. Never the text of your documents, and never a path outside the base name. Ledgers older than a week are deleted at the next session start.
 
-Nothing leaves the machine. `tests/test_no_network.py` enforces that by scanning every Python, JavaScript, PowerShell and shell file in the repository for a way to open a socket, and it fails the build rather than asserting it in prose. The benchmark that carried the one network dependency this project ever had is not published here.
+Nothing leaves the machine. `tests/test_no_network.py` enforces that by scanning every Python, JavaScript, PowerShell and shell file in the repository for a way to open a socket, and it fails the build rather than asserting it in prose. The old calibration harness that fetched corpora is not published here; the public benchmark harness reads a pinned local dataset and opens no socket.

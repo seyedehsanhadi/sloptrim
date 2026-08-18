@@ -16,7 +16,7 @@ Python standard library only, no network, no model. Prose only, never code.
 [![Version](https://img.shields.io/badge/version-0.9.1-blue)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE.txt)
 [![Dependencies](https://img.shields.io/badge/dependencies-none-blue)](scripts/detect.py)
-[![Tests](https://img.shields.io/badge/tests-175-blue)](tests/)
+[![Tests](https://img.shields.io/badge/tests-180-blue)](tests/)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](scripts/detect.py)
 
 [Install](#install) &middot; [What it does](#what-it-does) &middot; [Measured](#measured) &middot; [Limits](#what-it-cannot-do) &middot; [Patterns](references/patterns.md) &middot; [Ethics](ETHICS.md)
@@ -83,7 +83,7 @@ because they are typographic habits.
 | Formats | 20, including `.docx`, `.pptx`, `.xlsx`, OpenDocument, `.epub`, `.ipynb`, LaTeX; the first 256 KB of extracted prose is scored |
 | Runs in | Claude Code, on save. Other agents via `/sloptrim init`, which writes the contract to `AGENTS.md`, and `.cursor/rules/` |
 | Needs | Node for the hooks, Python 3.9 or newer for the detector, nothing else |
-| Suite | 103 Python tests and 72 hook checks, green in CI on Linux, Windows and macOS, against Python 3.9 and 3.13 (macOS on 3.13) |
+| Suite | 108 Python tests and 72 hook checks, green in CI on Linux, Windows and macOS, against Python 3.9 and 3.13 (macOS on 3.13) |
 | Does not see | A file written by a `Bash` command, which reaches disk without passing `Write` or `Edit` |
 
 | Command | Effect |
@@ -104,33 +104,38 @@ A score lands in one of five bands: `clean`, `light tells`, `mixed`, `heavy tell
 
 ## Measured
 
-**The figures below were measured against corpora held privately. Neither those
-corpora nor the harness that read them is in this repository, and nothing here
-recomputes any of it.** They are cited as results, with the corpus named, and cannot
-be re-derived from what you have cloned.
+The replacement is a public matched benchmark: five 30-human/30-machine experiments
+from the MIT-licensed Human Detectors repository release, pinned and scored
+separately. AUC is a ranking measure, not accuracy at Sloptrim's guard threshold.
 
-False positives on human prose, at the default threshold, worst corpus first:
-
-| corpus | n | rate |
-|---|---|---|
-| American textbooks, 30 titles | 9,333 | **0.85%** |
-| MAGE human web text | 504 | **0.40%** |
-| PubMed abstracts, pre-2020 | 529 | 0.00% |
-| arXiv abstracts, pre-2021 | 939 | 0.00% |
-
-Detection, ROC-AUC per corpus. The worst one is the headline:
+| machine arm | ROC-AUC | bootstrap 95% CI | default TPR / FPR |
+|---|---:|---:|---:|
+| GPT-4o | **0.946** | 0.876–0.992 | 46.7% / 0% |
+| Claude 3.5 Sonnet | **0.842** | 0.729–0.936 | 3.3% / 0% |
+| o1-pro | **0.877** | 0.771–0.957 | 23.3% / 6.7% |
+| paraphrased GPT-4o | **0.837** | 0.733–0.928 | 6.7% / 3.3% |
+| humanized o1-pro | **0.762** | 0.648–0.871 | 0% / 3.3% |
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/detection-dark.svg">
-  <img src="assets/detection-light.svg" width="756" alt="Detection by corpus, ROC-AUC: American textbooks 0.963, RAID 0.791, MAGE 0.669, a frontier model 0.551. 0.5 is a coin flip.">
+  <img src="assets/detection-light.svg" width="756" alt="Public matched benchmark ROC-AUC: GPT-4o 0.946, Claude 3.5 Sonnet 0.842, o1-pro 0.877, paraphrased GPT-4o 0.837, humanized o1-pro 0.762.">
 </picture>
+
+A separate current paired run generated 30 GPT-5.6 Sol articles on 2026-08-18 and
+matched each to a human article by subject and length. It measured ROC-AUC **0.965**
+(95% CI 0.913–1.000), but the normal guard threshold flagged **0/30** generated
+articles; strict mode flagged **12/30**, with no human flags at either threshold.
+That is useful score separation under one prompt and formatting setup, not reliable
+binary detection or a universal frontier-model result. Full protocol, hashes,
+ablation and limitations are in the
+[re-benchmark record](docs/research/frontier-benchmark-results.md).
 
 ## What it cannot do
 
-**It cannot tell you whether a current frontier model wrote something.** The machine
-arms above come from GPT-2, GPT-J, OPT, FLAN-T5, MPT, Mistral, Mixtral, GPT-3.5 and
-GPT-4, nothing newer. A run against a current frontier model measured ROC-AUC 0.551,
-close to a coin flip.
+**It cannot prove whether a model wrote something.** The public arms show that the
+score often ranks these machine samples above matched human samples. The threshold
+results show why that is not the same as a dependable yes/no classifier: sensitivity
+changes sharply with model, prompt, formatting and threshold.
 
 **The writing contract has no measured effect.** Twenty documents drafted twice from
 one brief with the switch toggled, both arms verified from the transcripts: mean

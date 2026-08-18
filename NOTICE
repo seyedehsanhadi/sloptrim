@@ -5,7 +5,8 @@ Licensed under the Apache License, Version 2.0. See LICENSE.txt.
 
 This product includes no third-party code. scripts/detect.py uses only the
 Python standard library; the hooks use only the Node standard library. No
-corpus, dataset or benchmark harness is distributed with it.
+corpus or dataset is distributed with it. The public benchmark harness is
+offline and also uses only the Python standard library.
 
 THIRD-PARTY FONT
 
@@ -37,13 +38,17 @@ one exception: the h_classic_prose sample in tests/validation_corpus.py opens
 with a sentence from Dickens, "A Tale of Two Cities" (1859), long in the
 public domain.
 
-NO CORPORA, NO HARNESS
+BENCHMARK MATERIAL
 
-The figures cited in README.md and CITATION.cff were measured in a benchmark
-that is held privately and is not part of this repository. Nothing here fetches
-a dataset, ships one, or recomputes any published number, so no dataset licence
-applies to anything in this tree. Read those figures as citations to work done
-elsewhere.
+No third-party corpus is distributed in this repository. The public matched
+measurements cited in README.md and CITATION.cff use the MIT-licensed Human
+Detectors repository release at a pinned revision; the source, revision, file hash,
+protocol and results are recorded in docs/research/. Users obtain upstream data
+under its own terms. A separate current-model arm was generated for this audit
+and is identified as self-generated rather than an independent public dataset.
+
+The original release also cited private benchmark figures. They are no longer
+used to support the current product headline.
 
 STATEMENT OF PURPOSE AND NON-GOALS
 
@@ -77,9 +82,8 @@ permits what it permits:
     of you.
   - Do not advertise it as a way to defeat a detector. It is not built for
     that and no such claim is made anywhere in it.
-  - If you publish numbers about it, say what you measured them on. The
-    corpora behind the numbers quoted here are not in this repository, so
-    your figures will not be a check on them.
+  - If you publish numbers about it, say what you measured them on. No corpus
+    is bundled here; record the upstream revision, split and protocol.
 
 See ETHICS.md for the full position, including academic use.
 

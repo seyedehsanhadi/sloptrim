@@ -11,20 +11,25 @@ Sloptrim's 2026-08-13 public release is chronologically possible:
 [model documentation](https://platform.claude.com/docs/en/about-claude/models/whats-new-opus-5).
 
 The specific Sloptrim result, however, has **no reproducible public basis** in
-this repository or in a primary public source found during this review.
+the published repository or in a primary public source found during this
+review.
 
-- `README.md:107-110` says the corpora and harness are private and nothing in
-  the repository recomputes the figures. The chart and frontier claim occur at
-  `README.md:121-133`.
-- `ETHICS.md:103-105` is the only place that names Claude Opus 5; it reports
-  ROC-AUC 0.551. `ETHICS.md:122-125` again says the benchmark is private and
-  cannot be re-derived.
-- `CITATION.cff:31-43`, `CHANGELOG.md:106-113`, and `NOTICE:40-46` repeat that
-  the figures, corpora, and harness are private.
+A separate private benchmark archive was also inspected after the initial
+public-source review. It contains the broader benchmark code and corpora, but
+its own claim ledger records only the aggregate for this arm—48 Claude
+Opus 5 documents against 860 human documents—and explicitly says the generated
+frontier arm was never committed. The archive therefore confirms that a
+private benchmark project exists while also confirming that this particular
+result cannot be re-derived from it.
+
+- The 0.9.0 `README.md`, `ETHICS.md` and `CITATION.cff` reported ROC-AUC 0.551
+  while stating that the corpora and harness were private and unavailable.
+- The 0.9.0 `CHANGELOG.md` and `NOTICE` repeated that the figures, corpora and
+  harness could not be re-derived from the public tree.
 - `tests/validation_corpus.py` contains only a small fixed calibration fixture.
   Its module documentation explicitly disclaims general authorship evidence,
   and it does not calculate ROC-AUC.
-- Full Git history contains one introduction of `0.551`: root commit
+- Full Git history of the published repository contains one introduction of `0.551`: root commit
   `9e46f9ed829874ca09f0b9f4144e5a51458f46c5` (`sloptrim 0.9.0`,
   2026-08-13). No deleted benchmark artifact exists in that history.
 
@@ -66,6 +71,7 @@ can form the public human arm of a new Opus 5 benchmark.
 
 | Source | Raw text access | Models and date coverage | Human comparison | License / use constraint | Fit for the claim |
 |---|---|---|---|---|---|
+| [Human Detectors](https://github.com/jenna-russell/human_detectors) | Direct Git clone; one 300-row JSON release | GPT-4o, Claude 3.5 Sonnet, o1-pro, paraphrased GPT-4o and humanized o1-pro | Yes; five 30/30 experiments matched by prompt ID, article brief and target publication | Repository release is MIT; underlying human articles come from third-party publications, so do not assume the repository license grants redistribution rights to those texts | **Selected public matched benchmark; not Opus 5** |
 | [HART](https://github.com/baoguangsheng/truth-mirror) | Direct Git clone; 16 JSON files under `benchmark/hart/` | Exact IDs in the released data include GPT-3.5 Turbo 0125, GPT-4o 2024-11-20, Claude 3.5 Sonnet 2024-10-22, Gemini 1.5 Pro 002, Llama 3.3 70B Instruct, and Qwen 2.5 72B Instruct | Yes; matched domains and equal human, AI-polished, AI-generated, and humanized arms | Repository has an MIT license, but the human source corpora retain their own rights; verify before redistributing a derivative corpus | **Best immediately downloadable robustness benchmark; not Opus 5** |
 | [EvoBench](https://github.com/happy-Moer/EvoBench) | Direct Git clone; each `*.raw_data.json` contains `original` and `sampled` arrays | 30 versions across Claude, GPT-4/4o, Gemini, Llama, and Qwen; latest Claude files are Claude 3.5 Sonnet/Haiku 2024-10-22 | Yes; 150 originals and 150 generated texts per inspected model/domain file | README says MIT, but audited commit has no `LICENSE` file and underlying dataset terms are not resolved | Excellent version-drift A/B corpus; **not Opus 5**, license needs clarification |
 | [PAN 2025 Voight-Kampff](https://pan.webis.de/clef25/pan25-web/generated-content-analysis.html) | Gated Zenodo download after TIRA registration | Fourteen generators through early 2025, including GPT-4.5 preview, o1/o1-mini/o3-mini, Gemini 2.0 Flash, DeepSeek R1, Llama 3.3, and others; no Claude in the main generation arm | Yes; fiction, essays, and news, with obfuscated variants | Copyrighted; research use only; no redistribution; test labels/data remain controlled | Strong shared-task benchmark, but not a freely redistributable Opus benchmark |
@@ -74,7 +80,37 @@ can form the public human arm of a new Opus 5 benchmark.
 | [BLUFF](https://github.com/jsl5710/BLUFF) | Hugging Face download script or `snapshot_download` (~3.9 GB) | 19 models including GPT-4.1, OpenAI o1, Gemini 1.5/2.0, Llama 3.3/4, Mistral Large, Phi-4, DeepSeek-R1, and QwQ; released as a 2026 under-review dataset | 122,836 human and 79,000+ generated samples across 79 languages | Data CC BY-NC-SA 4.0; code MIT; held-out test is controlled | Newest broad source, but heavily shifted toward fake-news/manipulation and contains no Claude |
 | [OpenStax](https://openstax.org/subjects) | Free online view and per-title PDF download | Human textbooks only | Human-only source suitable for a new matched generation arm | License is stated in each title's front matter and varies by title/edition; record it per book | Best direct replacement for the private “American textbooks” human corpus, not a ready-made detector benchmark |
 
-### 1. HART: recommended first public A/B run
+### 1. Human Detectors: selected matched benchmark
+
+Primary sources:
+[paper](https://arxiv.org/html/2501.15654v2),
+[repository](https://github.com/jenna-russell/human_detectors).
+
+The paper and repository release five experiments. Each experiment has 30
+human and 30 machine articles sharing `prompt_id`, title, subtitle, section,
+target length and target publication. The JSON fields used here are
+`generation_model`, `prompt_id`, `article` and `ground_truth`; the five exact
+arm values are `gpt-4o`, `claude`, `o1-pro`, `paraphrased_gpt-4o` and
+`humanized_o1-pro`. The same 30 human articles recur across arms, so arm-level
+confidence intervals resample matched prompt clusters and no pooled interval is
+reported.
+
+Pinned during this audit at commit
+`afcf03d14d2da4a038d8d0fafa5ec779dd858181`; `human_detectors.json` SHA-256 is
+`7ee1dc56d71b7cc5a185286f71818060a93ca20c4e93a90520ca78a0109619b5`.
+The repository release carries an MIT license. Its human articles originate in
+third-party publications, however, so that repository license should not be
+read as permission to redistribute the underlying texts. Sloptrim distributes
+only a harness, hash and aggregate results, not the corpus.
+
+Access:
+
+```text
+git clone https://github.com/jenna-russell/human_detectors.git
+python scripts/benchmark_frontier.py DATASET_JSON
+```
+
+### 2. HART: recommended broader robustness run
 
 Primary sources:
 [paper](https://arxiv.org/abs/2503.00258),
@@ -102,7 +138,7 @@ but human inputs originate in ASAP 2.0, arXiv, WritingPrompts, and Common
 Crawl. The repository license should not be assumed to override those source
 terms.
 
-### 2. EvoBench: recommended model-version drift run
+### 3. EvoBench: recommended model-version drift run
 
 Primary source: [official repository](https://github.com/happy-Moer/EvoBench).
 
@@ -133,7 +169,7 @@ licenses are not documented well enough to bless redistribution. It is still
 usable for an internal A/B measurement, but a published derivative should
 resolve those points first.
 
-### 3. PAN 2025: strongest controlled shared task
+### 4. PAN 2025: strongest controlled shared task
 
 Primary sources:
 [task page](https://pan.webis.de/clef25/pan25-web/generated-content-analysis.html),
@@ -159,7 +195,7 @@ redistribution and reserve the controlled test data. Small adversarial
 ELOQUENT submissions used Claude 3.5 Sonnet, but Claude is not one of the
 fourteen main generation arms and there is no Opus 5 arm.
 
-### 4. APT-Eval: AI-polishing stress test
+### 5. APT-Eval: AI-polishing stress test
 
 Primary sources:
 [official repository](https://github.com/ShoumikSaha/ai-polished-text),
@@ -185,7 +221,7 @@ This is the best public source here for testing whether Sloptrim penalizes
 small edits to genuinely human prose. It does not test fully generated Opus 5
 text.
 
-### 5. AuthorAwareDetectionBench: fairness stress test
+### 6. AuthorAwareDetectionBench: fairness stress test
 
 Primary sources:
 [official repository](https://github.com/PKU-ONELab/AuthorAwareDetection),
@@ -211,7 +247,7 @@ using its human metadata and generated-text files.
 This source is important for false-positive and demographic analysis, not for
 substantiating a current-frontier claim.
 
-### 6. BLUFF: newest multilingual source, high domain shift
+### 7. BLUFF: newest multilingual source, high domain shift
 
 Primary sources:
 [official repository](https://github.com/jsl5710/BLUFF),

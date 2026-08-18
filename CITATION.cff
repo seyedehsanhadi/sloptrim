@@ -28,16 +28,12 @@ abstract: >-
   instrument and not an authorship classifier: the score counts documented
   patterns and says nothing about who or what wrote the document.
 
-  The figures that follow were measured in a benchmark the author holds
-  privately. Neither that harness nor any corpus is part of this repository and
-  nothing here recomputes them, so they are cited as results obtained
-  elsewhere. On human prose predating any public language model, false
-  positives were 0.00% of 529 PubMed abstracts dated before 2020 and 0.00% of
-  939 arXiv abstracts submitted before 2021. Detection was reported per corpus
-  and never pooled, with the worst corpus as the headline: ROC-AUC 0.669 on
-  MAGE, 0.791 on a RAID arm of 4 generators writing abstracts with adversarial
-  attacks filtered out, and 0.963 separating American textbook prose from
-  Mixtral-8x7B text written to imitate it. Against a current frontier model
-  writing in ordinary registers the figure was 0.551, close to chance, so the
-  instrument should not be read as a test for machine authorship at the
-  current frontier.
+  A public matched benchmark contains five experiments with 30 human and 30
+  machine articles per arm. Sloptrim's score achieved ROC-AUC 0.762 to 0.946
+  across GPT-4o, Claude 3.5 Sonnet, o1-pro, paraphrased GPT-4o and humanized
+  o1-pro. A separate date-stamped 30-pair GPT-5.6 Sol run achieved ROC-AUC
+  0.965, while the normal guard threshold flagged none of its generated
+  articles and strict mode flagged 12 of 30. These are style-ranking results,
+  not evidence of authorship. The protocol, confidence intervals, source
+  revision, hashes and limitations are recorded in
+  docs/research/frontier-benchmark-results.md.

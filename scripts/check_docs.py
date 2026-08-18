@@ -444,24 +444,29 @@ def svg_pass():
 
     readme = FLAT[REPO / "README.md"]
     figures = [t for t in light if re.fullmatch(r"0\.\d{3}", t)]
-    labels = [t for t in light if re.fullmatch(r"[A-Za-z][A-Za-z ]{3,}", t)
-              and t not in ("against Mixtral",)]
-    check("the detection chart renders four figures", len(figures) == 4,
+    record = json.loads(RAW[REPO / "docs" / "research" /
+                            "frontier-benchmark-results.json"])
+    canonical = {name: row["auc"] for name, row in record["public_arms"].items()}
+    charted = {}
+    for index, label in enumerate(light[:-1]):
+        if label in canonical and re.fullmatch(r"0\.\d{3}", light[index + 1]):
+            charted[label] = light[index + 1]
+    tabled = {}
+    for match in re.finditer(
+            r"^\| ([^|]+?) \| \*\*(0\.\d{3})\*\* \| ([^|]+?) \| ([^|]+?) \|$",
+            RAW[REPO / "README.md"], re.M):
+        tabled[match.group(1)] = match.group(2)
+    check("the detection chart renders five figures", len(figures) == 5,
           "assets/detection-light.svg renders %r" % (figures,))
-    for fig in figures:
-        check("README.md quotes the charted figure %s" % fig, fig in readme,
-              "assets/detection-light.svg renders %s and README.md never states it"
-              % fig)
-    for label in labels:
-        check("README.md names the charted corpus %r" % label, label in readme,
-              "assets/detection-light.svg labels a bar %r and README.md never "
-              "names it" % label)
-    for doc in DOCS:
-        for quoted in set(re.findall(r"\b0\.\d{3}\b", FLAT[doc])):
-            check("%s: %s is a charted figure" % (REL[doc], quoted),
-                  quoted in figures,
-                  "%s quotes %s and no committed chart renders it"
-                  % (REL[doc], quoted))
+    eq("the detection chart matches the canonical arm-to-AUC mapping",
+       charted, canonical, "assets/detection-light.svg")
+    eq("the README table matches the canonical arm-to-AUC mapping",
+       tabled, canonical, "README.md")
+    current = record["current_arm"]
+    for value in (current["auc"], current["ci"]):
+        check("README.md quotes current-arm result %s" % value,
+              flatten(value) in readme,
+              "README.md omits canonical current-arm result %s" % value)
 
     joined = " ".join(demo_l)
     hit = re.search(r"(\d+)/(\w+)", joined)

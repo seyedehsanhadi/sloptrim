@@ -18,8 +18,9 @@ nothing beyond it. Behind a band there is a weighted count of the patterns in
 `references/patterns.md` and no model, no probability and no comparison against
 any authored sample. `pervasive tells` says the document carries a lot of what
 the catalogue lists. It does not say a machine produced it, it does not say a
-person did, and the frontier-model measurement further down is the reason to
-believe it could not tell you either way. Never use a band to accuse anyone.
+person did. The benchmark further down shows both score separation and poor
+threshold sensitivity, which is exactly why a band cannot settle authorship.
+Never use a band to accuse anyone.
 
 ## What it is not
 
@@ -100,10 +101,12 @@ Do not use the score to decide whether a student, colleague or applicant used AI
 It cannot answer that question, and here is the specific shape of what it cannot
 do.
 
-**It cannot identify current frontier model output.** Against a run of Claude
-Opus 5 it scored ROC-AUC 0.551, which is close to a coin flip. The machine arms
-it does separate are older: GPT-2, GPT-J, OPT, FLAN-T5, MPT, Mistral, Mixtral,
-GPT-3.5 and GPT-4.
+**It cannot identify current frontier model output reliably.** In a public
+matched benchmark its score achieved ROC-AUC 0.762–0.946 across five GPT-4o,
+Claude 3.5 Sonnet and o1-pro arms. In a separate 30-pair GPT-5.6 Sol run it
+achieved ROC-AUC 0.965, yet the normal product threshold flagged none of the
+generated articles; strict mode flagged 12 of 30. A ranking statistic and a
+threshold decision answer different questions, and neither proves origin.
 
 **It does not track machine authorship even on old models.** Base-model output
 scored like human writing, with three unaligned models averaging 14.6 to 15.3
@@ -119,10 +122,11 @@ is the entire purpose of the tool.
 non-native English prose carries several of these markers for reasons that have
 nothing to do with a model.
 
-Those measurements come from the benchmark held privately. The corpora and the
-harness are not in this repository and nothing here re-derives them, so treat
-each as a cited figure rather than as something you can check by running this
-tree.
+The current measurements, protocol, source revisions, hashes, confidence
+intervals and limitations are recorded in
+[`docs/research/frontier-benchmark-results.md`](docs/research/frontier-benchmark-results.md).
+Private legacy measurements are not used as evidence for the current product
+claim.
 
 ## The three counts
 

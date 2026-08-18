@@ -1,9 +1,10 @@
 """test_no_network.py: nothing in this repository may reach the network.
 
-The archive this was split from carried a benchmark that fetched corpora. That
-harness is not published here, so there is no longer any component with a reason
-to open a socket. The scan below walks the whole tree rather than a list of
-shipped files, so a fetch added anywhere fails the suite.
+The archive this was split from carried a calibration harness that fetched
+corpora; that private harness is not published here. The public frontier
+benchmark accepts a pinned local dataset path and also has no reason to open a
+socket. The scan below walks the whole tree rather than a list of shipped files,
+so a fetch added anywhere fails the suite.
 """
 import re
 from pathlib import Path

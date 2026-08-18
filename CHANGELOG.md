@@ -6,6 +6,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- Replaced a categorical frontier-model limitation with a public matched
+  benchmark and a date-stamped current-model arm. Product documentation now
+  reports ranking AUC alongside actual normal and strict threshold rates;
+  AUC is not classification accuracy.
 - Codex `apply_patch` hook payloads are scored. Codex supplies the affected paths inside
   `tool_input.command`, rather than the `file_path` used by Claude Code and Cursor; the
   guard now extracts each added, updated or moved path and runs the same file scorer.
@@ -110,7 +114,9 @@ The figures quoted in [README.md](README.md), in [CITATION.cff](CITATION.cff) an
 ### What it does not do
 
 - It does not say who or what wrote a document. It is not an authorship classifier and must not be used as one. See [ETHICS.md](ETHICS.md).
-- It cannot tell you whether a current frontier model wrote something. Measured against one, the separation was close to chance.
+- It cannot prove whether a current frontier model wrote something. The release's
+  private frontier measurement was later found insufficient for the categorical
+  claim made here; see the Unreleased correction and public re-benchmark.
 - It does not judge whether a document is true, or whether it is any good. It counts documented patterns and reports the count.
 - The score is document-level and moves with length. Splitting one file in two can put the halves in a different band from the whole.
 - Dense formal exposition carries several of the catalogue patterns as ordinary register, which is why 13 rules are held out of the score and why `strict` will flag a good deal of careful human writing.

@@ -10,8 +10,9 @@ a second thing to keep in sync, and the copy is always the one that goes stale.
 Jules and several others pick up instructions. That was built and never
 documented, so the README claim and the code are pinned to each other.
 
-The corpus checks that used to live here needed the benchmark, which is not part
-of this repository, so they were removed rather than left to skip.
+The corpus checks that used to live here needed the private calibration
+benchmark and corpora, which are not part of this repository, so they were
+removed rather than left to skip.
 """
 import io
 import re
