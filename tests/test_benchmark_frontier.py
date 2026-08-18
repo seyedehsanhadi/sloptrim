@@ -5,9 +5,25 @@ from pathlib import Path
 
 
 PATH = Path(__file__).parents[1] / "scripts" / "benchmark_frontier.py"
+RESULTS_PATH = (Path(__file__).parents[1] / "docs" / "research" /
+                "frontier-benchmark-results.json")
 SPEC = importlib.util.spec_from_file_location("benchmark_frontier", PATH)
 BENCHMARK = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(BENCHMARK)
+
+
+def test_published_results_contain_only_reproducible_public_arms():
+    results = json.loads(RESULTS_PATH.read_text(encoding="utf-8"))
+    assert list(results["public_arms"]) == [
+        "GPT-4o",
+        "Claude 3.5 Sonnet",
+        "o1-pro",
+        "paraphrased GPT-4o",
+        "humanized o1-pro",
+    ]
+    assert "current_arm" not in results
+    assert results["dataset_commit"] == BENCHMARK.DATASET_COMMIT
+    assert results["dataset_sha256"] == BENCHMARK.DATASET_SHA256
 
 
 def test_auc_counts_order_and_ties():

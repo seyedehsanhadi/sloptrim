@@ -104,6 +104,7 @@ MARKET = json.loads((REPO / ".claude-plugin" / "marketplace.json").read_text(enc
 PATTERNS = (REPO / "references" / "patterns.md").read_text(encoding="utf-8")
 
 VERSION = PLUGIN["version"]
+PUBLIC_RELEASE_VERSION = "0.9.2"
 
 HEADINGS = re.findall(r"^### (\d+)\. ", PATTERNS, re.M)
 CATALOGUE = len(re.findall(r"^### ", PATTERNS, re.M))
@@ -628,6 +629,60 @@ def code_pass():
               "route it" % ext)
 
 
+# --------------------------------------------------------- publication policy
+def publication_pass():
+    eq("plugin.json ships the approved public release",
+       VERSION, PUBLIC_RELEASE_VERSION, ".claude-plugin/plugin.json")
+
+    surfaces = {
+        "README.md": re.search(r"version-(\d+\.\d+\.\d+)",
+                                RAW[REPO / "README.md"]),
+        "SKILL.md": re.search(r"^version: (\d+\.\d+\.\d+)$",
+                               RAW[REPO / "SKILL.md"], re.M),
+        "CITATION.cff": re.search(r"^version: (\d+\.\d+\.\d+)$",
+                                   RAW[REPO / "CITATION.cff"], re.M),
+    }
+    for name, match in surfaces.items():
+        eq("%s ships the approved public release" % name,
+           match.group(1) if match else None, PUBLIC_RELEASE_VERSION, name)
+
+    results = json.loads(RAW[REPO / "docs" / "research" /
+                             "frontier-benchmark-results.json"])
+    expected_arms = ["GPT-4o", "Claude 3.5 Sonnet", "o1-pro",
+                     "paraphrased GPT-4o", "humanized o1-pro"]
+    eq("the published benchmark contains the five reproducible public arms",
+       list(results.get("public_arms", {})), expected_arms,
+       "docs/research/frontier-benchmark-results.json")
+    check("the published benchmark has no unreproducible current-model arm",
+          "current_arm" not in results,
+          "docs/research/frontier-benchmark-results.json publishes current_arm "
+          "without its source texts")
+
+    banned = re.compile(
+        r"private benchmark|private calibration|private corpus|"
+        r"unpublished benchmark|original release also cited private",
+        re.I,
+    )
+    for path in DOCS:
+        match = banned.search(RAW[path])
+        check("%s carries no private benchmark history" % REL[path],
+              match is None,
+              "%s contains the private-history phrase %r"
+              % (REL[path], match.group(0) if match else ""))
+
+    all_public_text = "\n".join(RAW.values())
+    for marker in (r"C:\\Users\\", "/Users/", "/home/"):
+        check("public documents contain no local path marker %s" % marker,
+              marker not in all_public_text,
+              "a public document contains the local path marker %s" % marker)
+
+    notice = RAW[REPO / "NOTICE"]
+    for required in ("Archivo", "SIL Open Font License", "Pangram Labs"):
+        check("NOTICE retains %s attribution" % required,
+              required in notice,
+              "NOTICE no longer contains %r" % required)
+
+
 # ----------------------------------------------------- re-derivability and CI
 MEASURE = re.compile(r"figure|number|measurement|result|rate|roc|auc|corpus|"
                      r"corpora|benchmark|claim|published|score", re.I)
@@ -691,6 +746,7 @@ def main():
     link_pass()
     svg_pass()
     code_pass()
+    publication_pass()
     honesty_pass()
     total = PASSED + len(FAILURES) + len(self_claims())
     self_pass(total)
