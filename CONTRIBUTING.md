@@ -5,7 +5,7 @@ The most useful thing you can send is **a document this scores wrongly**: human 
 ## Running the checks
 
 ```bash
-python -m pytest tests/ -q      # 108 tests
+python -m pytest tests/ -q      # 109 tests
 bash tests/test_hooks.sh        # 72 hook checks
 python scripts/detect.py FILE   # JSON: patterns, metrics, the 0-100 score and its band
 ```

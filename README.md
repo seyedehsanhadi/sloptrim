@@ -16,7 +16,7 @@ Python standard library only, no network, no model. Prose only, never code.
 [![Version](https://img.shields.io/badge/version-0.9.2-blue)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE.txt)
 [![Dependencies](https://img.shields.io/badge/dependencies-none-blue)](scripts/detect.py)
-[![Tests](https://img.shields.io/badge/tests-180-blue)](tests/)
+[![Tests](https://img.shields.io/badge/tests-181-blue)](tests/)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](scripts/detect.py)
 
 [Install](#install) &middot; [What it does](#what-it-does) &middot; [Measured](#measured) &middot; [Limits](#what-it-cannot-do) &middot; [Patterns](references/patterns.md) &middot; [Ethics](ETHICS.md)
@@ -83,7 +83,7 @@ because they are typographic habits.
 | Formats | 20, including `.docx`, `.pptx`, `.xlsx`, OpenDocument, `.epub`, `.ipynb`, LaTeX; the first 256 KB of extracted prose is scored |
 | Runs in | Claude Code, on save. Other agents via `/sloptrim init`, which writes the contract to `AGENTS.md`, and `.cursor/rules/` |
 | Needs | Node for the hooks, Python 3.9 or newer for the detector, nothing else |
-| Suite | 108 Python tests and 72 hook checks, green in CI on Linux, Windows and macOS, against Python 3.9 and 3.13 (macOS on 3.13) |
+| Suite | 109 Python tests and 72 hook checks, green in CI on Linux, Windows and macOS, against Python 3.9 and 3.13 (macOS on 3.13) |
 | Does not see | A file written by a `Bash` command, which reaches disk without passing `Write` or `Edit` |
 
 | Command | Effect |
