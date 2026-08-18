@@ -165,6 +165,29 @@ def run_detect(text: str) -> dict:
     return json.loads(r.stdout)
 
 
+def test_confidence_counts_catalogue_families_not_detector_keys():
+    text = """The survey used several methods. These methods provide information about how residents travel between the river district and the central station on ordinary weekdays. Twelve volunteers counted bicycles at the bridge from six in the morning until the last school bus passed shortly after nine, pausing only when traffic officers closed one lane. At the same time, three clerks checked paper tickets on buses that entered the square, while another clerk recorded delays caused by road repairs near the library. Rain stopped the work briefly. When counting resumed, the team kept the morning and afternoon results separate because school traffic changed the totals after three o'clock, and mixing those periods would have hidden the difference between commuter trips and short journeys made by pupils. The final table lists each observation. It also records the date, location, direction of travel, and weather at the time, giving later readers enough detail to check the arithmetic without relying on the summary. No estimate was added where a count was missing."""
+    result = run_detect(text)
+    keys = {k for k in result if not k.startswith("_")}
+    assert keys == {"32_catalog_leadin", "32_catalog_pivot"}
+    assert result["_metrics"]["confidence"] == "low"
+    assert "1 scored pattern" in result["_metrics"]["confidence_reason"]
+
+
+def test_great_question_needs_chatbot_punctuation():
+    human = run_detect(
+        "The committee debated whether representation was a great question in the "
+        "colonies, but the larger issue was taxation. The speaker returned to the "
+        "same great question in his closing argument and asked the audience to judge "
+        "the evidence rather than his choice of words."
+    )
+    chatbot = run_detect("Great question! I would be happy to help with that.")
+    assert "47_chatbot_artifacts" not in human and "48_sycophantic" not in human
+    # Flattery lives in 48 alone.
+    assert "48_sycophantic" in chatbot
+    assert "47_chatbot_artifacts" not in chatbot
+
+
 def run_clean(text: str) -> str:
     r = subprocess.run(
         [sys.executable, str(DETECT), "--clean"],

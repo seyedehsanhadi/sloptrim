@@ -33,7 +33,41 @@ const sid = input.session_id;
 // NotebookEdit names its target notebook_path, not file_path.
 const ti = input.tool_input || {};
 const filePath = String(ti.file_path || ti.notebook_path || '');
-if (!filePath) process.exit(0);
+if (!filePath) {
+  // Codex aliases apply_patch to Write for hook matching, but sends the patch in
+  // tool_input.command. Re-run this same guard once per resulting file so the
+  // established one-file path stays the only scoring implementation.
+  const patch = String(ti.command || '');
+  const paths = [...patch.matchAll(/^\*\*\* (?:Add|Update) File:\s*(.+?)\s*$/gm)]
+    .map((m) => m[1].trim());
+  const moves = [...patch.matchAll(/^\*\*\* Move to:\s*(.+?)\s*$/gm)]
+    .map((m) => m[1].trim());
+  // Bound the fan-out of one patch.
+  const changed = [...new Set(paths.concat(moves))].slice(0, 16);
+  if (!changed.length) process.exit(0);
+  const { spawnSync } = require('child_process');
+  const contexts = [];
+  for (const changedPath of changed) {
+    const childInput = { ...input, tool_name: 'Write',
+      tool_input: { ...ti, file_path: changedPath } };
+    const child = spawnSync(process.execPath, [__filename], {
+      input: JSON.stringify(childInput), encoding: 'utf8', env: process.env,
+      timeout: 20000, maxBuffer: 4 * 1024 * 1024,
+    });
+    try {
+      const parsed = JSON.parse(child.stdout || '');
+      const context = parsed.hookSpecificOutput && parsed.hookSpecificOutput.additionalContext;
+      if (context) contexts.push(context);
+    } catch (e) { /* a clean file produces no output */ }
+  }
+  if (contexts.length) process.stdout.write(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: 'PostToolUse',
+      additionalContext: contexts.join('\n'),
+    },
+  }));
+  process.exit(0);
+}
 
 const ext = path.extname(filePath).toLowerCase();
 const base = path.basename(filePath);
@@ -73,11 +107,14 @@ if (!PROSE_EXT.has(ext) && !isOffice) {
 let text = '';
 try {
   const stat = fs.statSync(filePath);
-  if (!stat.isFile() || stat.size > 4 * 1024 * 1024) process.exit(0);
-  if (!isOffice) {
-    if (stat.size > 512 * 1024) process.exit(0);
-    text = readTextFile(filePath);
+  if (!stat.isFile()) process.exit(0);
+  const limit = isOffice ? 4 * 1024 * 1024 : 512 * 1024;
+  if (stat.size > limit) {
+    logDeliverable({ t: Date.now(), file: base, kind: 'skipped',
+                     reason: 'size', size: stat.size, limit }, sid);
+    process.exit(0);
   }
+  if (!isOffice) text = readTextFile(filePath);
 } catch (e) {
   process.exit(0);
 }
@@ -106,10 +143,11 @@ const labels = Object.entries(report)
   .slice(0, 5);
 
 const threshold = mode === 'strict' ? 20 : 40;
-const flagged = score > threshold;
+const flagged = score > threshold && m.confidence !== 'none';
 
 logDeliverable({ t: Date.now(), file: base, kind: 'scored', score,
-                 band: m.ai_tell_band, tells: labels, flagged }, sid);
+                 band: m.ai_tell_band, tells: labels, flagged,
+                 truncated: Boolean(m.truncated) }, sid);
 
 if (!flagged) process.exit(0);
 

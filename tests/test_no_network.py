@@ -1,9 +1,8 @@
 """test_no_network.py: nothing in this repository may reach the network.
 
-The archive this was split from carried a benchmark that fetched corpora. That
-harness is not published here, so there is no longer any component with a reason
-to open a socket. The scan below walks the whole tree rather than a list of
-shipped files, so a fetch added anywhere fails the suite.
+The public benchmark accepts a pinned local dataset path and has no reason to
+open a socket. The scan walks the whole tree rather than a fixed list, so a
+fetch added anywhere fails the suite.
 """
 import re
 from pathlib import Path

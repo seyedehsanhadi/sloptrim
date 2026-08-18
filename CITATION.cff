@@ -1,14 +1,14 @@
 cff-version: 1.2.0
 title: "sloptrim: a deterministic prose-quality detector and always-on writing contract"
-message: "If you use this software or the measurements cited below, please cite it. This is a pre-1.0 release; the interfaces and the score calibration may still change."
+message: "If you use this software or its published measurements, please cite it. This is a pre-1.0 release; interfaces and score calibration may still change."
 type: software
 authors:
   - family-names: Hadi
     given-names: Seyed Ehsan
 repository-code: "https://github.com/seyedehsanhadi/sloptrim"
 license: Apache-2.0
-version: 0.9.1
-date-released: "2026-08-17"
+version: 0.9.2
+date-released: "2026-08-18"
 keywords:
   - writing quality
   - text analysis
@@ -16,28 +16,12 @@ keywords:
   - large language models
   - research software
 abstract: >-
-  sloptrim scores prose against a catalogue of 71 documented patterns of
-  machine-flavoured writing and asks the writer to fix what it flags. 62 of the
-  71 have a detector in scripts/detect.py; the other 9 need a reading. Thirteen
-  of the 62 rules are held out of the score as markers of formal register or of
-  typesetting rather than of machine authorship. They fall on thirteen
-  catalogue numbers, but number 17 keeps a second rule that still scores, so 12
-  numbers carry no weight and 50 still do. The detector is deterministic, uses
-  only the Python standard library, and opens no socket, which a test enforces
-  by walking every script in the repository. It is a writing-quality
-  instrument and not an authorship classifier: the score counts documented
-  patterns and says nothing about who or what wrote the document.
-
-  The figures that follow were measured in a benchmark the author holds
-  privately. Neither that harness nor any corpus is part of this repository and
-  nothing here recomputes them, so they are cited as results obtained
-  elsewhere. On human prose predating any public language model, false
-  positives were 0.00% of 529 PubMed abstracts dated before 2020 and 0.00% of
-  939 arXiv abstracts submitted before 2021. Detection was reported per corpus
-  and never pooled, with the worst corpus as the headline: ROC-AUC 0.669 on
-  MAGE, 0.791 on a RAID arm of 4 generators writing abstracts with adversarial
-  attacks filtered out, and 0.963 separating American textbook prose from
-  Mixtral-8x7B text written to imitate it. Against a current frontier model
-  writing in ordinary registers the figure was 0.551, close to chance, so the
-  instrument should not be read as a test for machine authorship at the
-  current frontier.
+  sloptrim is a deterministic local prose-pattern linter and writing contract.
+  It documents 71 patterns, automates 62 of them, and reports which patterns
+  occur without claiming who or what wrote the document. 50 can move the
+  score; 12 are reported as writing advice. The runtime uses standard-library
+  Python and Node.js and opens no network connection. On five public matched
+  Human Detectors arms with 30 human and 30 machine articles each, its score
+  achieved ROC-AUC 0.762 to 0.946. These are ranking results, not authorship or
+  per-document accuracy claims. The benchmark's pinned source, aggregate results,
+  confidence intervals, and offline reproduction harness ship with the repository.

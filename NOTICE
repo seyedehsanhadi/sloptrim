@@ -3,85 +3,28 @@ Copyright 2026 Seyed Ehsan Hadi
 
 Licensed under the Apache License, Version 2.0. See LICENSE.txt.
 
-This product includes no third-party code. scripts/detect.py uses only the
-Python standard library; the hooks use only the Node standard library. No
-corpus, dataset or benchmark harness is distributed with it.
+The runtime implementation uses the Python and Node.js standard libraries and
+opens no network connection. No benchmark corpus or dataset is distributed.
 
 THIRD-PARTY FONT
 
 assets/sloptrim-logo.svg and assets/sloptrim-logo-dark.svg embed a subset of
-the Archivo typeface as a woff2 data URI, so the wordmark renders where an
-external font cannot be fetched. No other file in this repository carries
-third-party material of any kind.
+the Archivo typeface as a woff2 data URI.
 
   Archivo, version 2.001, subset to the glyphs the wordmark uses
   Copyright 2020 The Archivo Project Authors (https://github.com/Omnibus-Type/Archivo)
   Licensed under the SIL Open Font License, Version 1.1
   http://scripts.sil.org/OFL
 
-The OFL requires that the copyright notice above and the licence itself travel
-with the font wherever it goes. The licence is therefore reproduced in full at
-the foot of this file. Archivo declares no Reserved Font Name, and the subset
-embedded here is unmodified in outline and in name.
+The SIL Open Font License is reproduced in full below.
 
-PATTERN CATALOGUE
+BENCHMARK MATERIAL
 
-The taxonomy follows publicly documented signs of AI writing. The vocabulary
-lists in references/patterns.md sections 1, 9 and 46 are drawn from Pangram
-Labs' published measurements of words over-represented in machine text, and
-each use cites that source in place; the word lists compiled into
-scripts/detect.py draw on the same measurements. Facts about how machines
-write are not anyone's property. Every worked example, every Before and After
-pair and every line of detector code here was written for this project, with
-one exception: the h_classic_prose sample in tests/validation_corpus.py opens
-with a sentence from Dickens, "A Tale of Two Cities" (1859), long in the
-public domain.
-
-NO CORPORA, NO HARNESS
-
-The figures cited in README.md and CITATION.cff were measured in a benchmark
-that is held privately and is not part of this repository. Nothing here fetches
-a dataset, ships one, or recomputes any published number, so no dataset licence
-applies to anything in this tree. Read those figures as citations to work done
-elsewhere.
-
-STATEMENT OF PURPOSE AND NON-GOALS
-
-sloptrim improves the quality of prose. It is not a tool for concealing the
-origin of a document, and it is not built or maintained to defeat any
-detector.
-
-It does optimise against its own published quality score, which is what an
-editing tool does. It consults no third-party detector of any kind. See
-ETHICS.md for why that distinction is the whole position.
-
-The project will not accept, and the maintainer will not implement:
-
-  - any check against a third-party AI detector, hosted or local
-  - any objective tied to a third-party detector's score
-  - any feature whose stated purpose is to pass a plagiarism, integrity or
-    authorship check
-  - any claim that using this tool makes undisclosed AI assistance
-    acceptable, permitted or undetectable
-
-Better writing is harder to distinguish from human writing, because
-detectors key on bad writing. That is a property of detectors, not a
-feature of this tool, and it is not a purpose it is optimised for.
-
-If you did not write it, sloptrim does not make it yours.
-
-Three requests, which are requests and not licence conditions. Apache-2.0
-permits what it permits:
-
-  - Do not use this to conceal AI assistance where disclosure is required
-    of you.
-  - Do not advertise it as a way to defeat a detector. It is not built for
-    that and no such claim is made anywhere in it.
-  - If you publish numbers about it, say what you measured them on. The
-    corpora behind the numbers quoted here are not in this repository, so
-    your figures will not be a check on them.
-
-See ETHICS.md for the full position, including academic use.
+The public benchmark measurements in README.md and CITATION.cff use the Human Detectors
+repository at the revision and file hash recorded in
+docs/research/frontier-benchmark-results.json. Users obtain the upstream data
+under its own terms; this repository ships only aggregate results and an
+offline benchmark reproduction harness.
 
 
 -----------------------------------------------------------

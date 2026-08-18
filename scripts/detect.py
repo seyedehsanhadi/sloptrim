@@ -14,31 +14,19 @@ MAX_SAMPLES = 3
 
 # ----------------------------------------------------------- lexical patterns
 AI_VOCAB = (
-    r"\b(?:delve|"
-    r"delves|delving|tapestry|pivotal|vibrant|meticulous|meticulously|"
-    r"testament|underscore|underscores|underscoring|intricate|intricacies|"
-    r"interplay|garner|garners|garnered|bolster|bolsters|bolstered|foster|"
-    r"fosters|fostered|fostering|showcase|showcases|showcasing|emphasize|"
-    r"emphasizes|emphasizing|enduring|crucial|enhance|enhances|enhancing|"
-    r"renowned|groundbreaking|profound|multifaceted|leverage|leverages|"
-    r"leveraging|utilize|utilizes|utilizing|facilitate|facilitates|"
-    r"encompasses|encompassing|spearhead|spearheads|harness|harnesses|"
-    r"elevate|elevates|streamline|streamlines|robust|seamless|seamlessly|"
-    r"effortless|effortlessly|revolutionize|revolutionizes|revolutionizing|"
-    r"game-changing|buzzworthy|"
-    r"holistic|synergy|paradigm|transformative|unprecedented|myriad|plethora|"
-    r"endeavor|endeavors|navigate|navigates|embark|embarks|embarked|"
-    r"kaleidoscope|symphony|realm|landscape|journey|quest|odyssey|roadmap|"
-    r"reimagine|reimagines|reimagining|unleash|unleashes|unlock|unlocks|"
-    r"unravel|unravels|weave|weaves|weaving|illuminate|illuminates|"
-    r"illuminating|elucidate|elucidates|transcend|transcends|transcending|"
-    r"resonate|resonates|resonating|reverberate|reverberates|reverberating|"
-    r"embody|embodies|embodying|grapple|grapples|grappling|empower|empowers|"
-    r"empowering|deepen|deepens|deepening|cultivate|cultivates|cultivating|"
+    r"\b(?:additionally|align(?:s|ed|ing)? with|crucial|"
+    r"delv(?:e|es|ed|ing)|tapestry|pivotal|vibrant|meticulous(?:ly)?|"
+    r"testament|underscor(?:e|es|ed|ing)|intricate|intricacies|interplay|"
+    r"garner(?:s|ed|ing)?|bolster(?:s|ed|ing)?|foster(?:s|ed|ing)?|"
+    r"showcas(?:e|es|ed|ing)|emphasiz(?:e|es|ed|ing)|enduring|"
+    r"enhanc(?:e|es|ed|ing)|leverag(?:e|es|ed|ing)|utiliz(?:e|es|ed|ing)|"
+    r"facilitat(?:e|es|ed|ing)|encompass(?:es|ed|ing)?|harness(?:es|ed|ing)?|"
+    r"holistic|paradigm|transformative|unprecedented|myriad|plethora|"
+    r"robust|seamless(?:ly)?|navigat(?:e|es|ed|ing)|embark(?:s|ed|ing)?|"
+    r"craft(?:s|ed|ing)?|landscape|journey|realm|multifaceted|"
+    r"elevat(?:e|es|ed|ing)|empower(?:s|ed|ing)?|unlock(?:s|ed|ing)?|"
     r"captures? the (?:essence|spirit|imagination|heart|magic)|"
-    r"capturing the (?:essence|spirit|imagination|heart|magic)|"
-    r"curate|curates|curated|craft|crafts|"
-    r"crafted|crafting)\b"
+    r"capturing the (?:essence|spirit|imagination|heart|magic))\b"
 )
 
 ING_TAIL = (
@@ -116,8 +104,8 @@ CURLY = r"[‘’“”]"
 
 # -------------------------------------------------------- assistant artefacts
 CHATBOT = (
-    r"\b(?:I hope this helps|great question|certainly(?=!)|of course(?=!)|"
-    r"you(?:'?re| are) absolutely right|let me know if you|would you like me to|"
+    r"\b(?:I hope this helps|certainly(?=!)|of course(?=!)|"
+    r"let me know if you|would you like me to|"
     r"feel free to (?:ask|reach out)|happy to help(?=[!.]|$)|"
     r"(?:here|below) is (?:a|an|the)?\s*(?:overview|summary|rundown|recap|brief(?!\s+\w))|"
     r"here (?:are|'?s) (?:a few|three|two|some) (?:options|drafts|versions|variations)|"
@@ -1362,7 +1350,7 @@ _SCORE_DECISIVE = {
 _SCORE_STRONG = {
     "16_ing_tail", "20_empty_pivot_phrase", "21_outcome_speculation",
     "24_self_thoroughness", "18_not_x_just_y", "27_compulsive_intro",
-    "30_diff_anchored", "17_negative_parallelism", "5_simple_yet",
+    "30_diff_anchored", "5_simple_yet",
     "69_canonical_slop", "71_degenerate_repetition",
 }
 # Keys listed here that are also demoted below never reach the weight, because the
@@ -1371,40 +1359,19 @@ _SCORE_SOFT = {
     "37_transition_cluster", "57_emojis", "2_model_dialect",
     "23_editorial_interjection",
 }
+# 17_negative_parallelism is report-only, declared once, below.
 _SCORE_STYLE_ONLY = {"60_curly_quotes", "61_hyphen_for_en_dash"}
 _SCORE_REPORT_ONLY = {
     "4_hyphen_cliche", "19_filler_phrases", "22_authority_trope",
     "41_mechanical_alternation", "55_contraction_absence",
     "68_trailing_whitespace",
-    # Both failed the same test the six above failed, on a corpus fetched after
-    # the pattern set was frozen: 9,333 documents from 30 real American
-    # textbooks. 42_opener_repetition fires on 3.5% of that human prose and 0.2%
-    # of machine prose written to imitate it, a lift of 0.06, and it was already
-    # only 1.08 on the main corpus at precision 0.68. 54_hedge_stacking is 0.51
-    # there and 1.23 on the main corpus; academic prose hedges, which is register
-    # rather than authorship. Dropping both cuts textbook false positives from
-    # 5.7% to 3.9% and raises main-corpus recall at one false positive from 34.0%
-    # to 40.7%, with ROC-AUC unchanged. Measured in the private benchmark, which
-    # is not part of this repository, so it cannot be re-derived here.
+    # Openers and hedge stacking are ordinary features of formal prose. Reporting
+    # them remains useful editing advice; scoring them would manufacture false
+    # positives from register rather than identify a prose-quality defect.
     "42_opener_repetition", "54_hedge_stacking",
-    # Three more, demoted on agreement between two corpora rather than one. Each
-    # fires more on human prose than on machine prose on BOTH the textbook corpus
-    # and the protocol corpora, which is what separates a real defect from one
-    # corpus being unusual.
-    #   58_em_dash_overuse       lift 0.30 protocol, 0.70 textbook. It fires on
-    #                            19.8% of human documents and 5.9% of machine
-    #                            ones. The belief that an em-dash marks machine
-    #                            writing is backwards, and scoring it manufactures
-    #                            false positives on people who punctuate well.
-    #   17_negative_parallelism  0.67 protocol, 0.60 textbook.
-    #   46_punctuation_underuse  0.86 protocol, 0.71 textbook. Counting semicolons
-    #                            measures house style, not authorship.
-    # Textbook false positives fall 3.9% to 1.6%, clearing the 2% line this
-    # project set for itself; textbook ROC-AUC rises 0.942 to 0.958 and recall at
-    # zero false positives 8.8% to 15.1%. The main corpus pays 1.4 points of
-    # recall at zero false positives and gains 0.002 ROC-AUC. Measured in the
-    # private benchmark, which is not part of this repository, so it cannot be
-    # re-derived here.
+    # Em dashes, negative parallelism, and sparse semicolon/parenthesis use also
+    # vary with house style and register. Keep the detections visible, but do not
+    # turn those typography and rhetoric choices into score weight.
     "58_em_dash_overuse", "17_negative_parallelism", "46_punctuation_underuse",
 }
 _SCORE_RHYTHM = {"40_sentence_monotony", "55_contraction_absence", "41_mechanical_alternation"}
@@ -1436,6 +1403,8 @@ def ai_tell_score(result: dict, text: str, burst: dict, para_mono: dict, punct: 
     diversity = 0.0
     content_load = 0.0
     rhythm_flags = 0
+    # Density counts every hit; diversity counts each catalogue family once.
+    counted_families = set()
     for key, val in result.items():
         if key.startswith("_") or not isinstance(val, dict):
             continue
@@ -1446,13 +1415,17 @@ def ai_tell_score(result: dict, text: str, burst: dict, para_mono: dict, punct: 
             continue
         count = min(val.get("count", 1), 5)
         weight = 3.0 if key in _SCORE_DECISIVE else 1.0 if key in _SCORE_SOFT else 1.6
+        content_load += weight * count
+        family = key.split("_", 1)[0]
+        if family in counted_families:
+            continue
+        counted_families.add(family)
         diversity += (
             16.0 if key in _SCORE_DECISIVE
             else 10.0 if key in _SCORE_STRONG
             else 2.5 if key in _SCORE_SOFT
             else 5.0
         )
-        content_load += weight * count
 
     density_bonus = min(10.0, content_load / eff * 1000 * 1.0)
     content_term = min(_CONTENT_CAP, diversity + density_bonus)
@@ -1477,10 +1450,17 @@ def ai_tell_score(result: dict, text: str, burst: dict, para_mono: dict, punct: 
                   else 0.0)
 
     score = round(min(100.0, content_term + rhythm_term + vocab_term + punct_term))
-    decisive_hits = sum(1 for k in result if k in _SCORE_DECISIVE)
+    scored = {int(k.split("_", 1)[0]) for k in result
+              if not k.startswith("_") and k not in _SCORE_REPORT_ONLY
+              and k not in _SCORE_STYLE_ONLY and k.split("_", 1)[0].isdigit()}
+    decisive_hits = len({k.split("_", 1)[0] for k in result
+                         if k in _SCORE_DECISIVE})
+    thin = score_confidence(words, len(scored))["confidence"] in ("none", "low")
     if decisive_hits >= 2:
+        # Two distinct decisive families corroborate each other.
         score = max(score, 65)
-    elif decisive_hits == 1:
+    elif decisive_hits == 1 and not thin:
+        # A lone marker needs the evidence behind it.
         score = max(score, 45)
 
     # _SCORE_STYLE_ONLY belongs here beside _SCORE_REPORT_ONLY. Without it,
@@ -1596,6 +1576,8 @@ def _reading_order(name: str) -> tuple:
 # ------------------------------------------------------------------ main scan
 def scan(raw_text: str) -> dict:
     result: dict = {}
+    # One window for every layer.
+    capped = raw_text[:_SCAN_CAP]
     text, evasion_defused = defuse_evasion(
         strip_markdown_furniture(strip_quoted_spans(strip_code(raw_text[:_SCAN_CAP])))
     )
@@ -1749,7 +1731,7 @@ def scan(raw_text: str) -> dict:
             "samples": stacked[:MAX_SAMPLES],
         }
 
-    invisible = detect_invisible_chars(raw_text)
+    invisible = detect_invisible_chars(capped)
     if invisible["count"]:
         result["62_invisible_chars"] = {
             "label": "Invisible / zero-width characters (strip)",
@@ -1757,7 +1739,7 @@ def scan(raw_text: str) -> dict:
             "samples": _labelled_samples(invisible["chars"]),
         }
 
-    nbsp = detect_nonstandard_spaces(raw_text)
+    nbsp = detect_nonstandard_spaces(capped)
     if nbsp["count"]:
         result["67_nonstandard_spaces"] = {
             "label": "Non-standard spaces (normalize to U+0020)",
@@ -1765,7 +1747,7 @@ def scan(raw_text: str) -> dict:
             "samples": _labelled_samples(nbsp["chars"]),
         }
 
-    trailing = detect_trailing_whitespace(raw_text)
+    trailing = detect_trailing_whitespace(capped)
     if trailing["artifact"]:
         tsamples: list[str] = []
         if trailing["leading_whitespace"]:
@@ -1782,7 +1764,7 @@ def scan(raw_text: str) -> dict:
             "samples": tsamples,
         }
 
-    rules = detect_decorative_rules(raw_text[:_SCAN_CAP])
+    rules = detect_decorative_rules(capped)
     if rules:
         result["70_decorative_rules"] = {
             "label": "Decorative horizontal rules",
@@ -1914,11 +1896,14 @@ def scan(raw_text: str) -> dict:
     # from the score, so counting them here inflated the confidence attached to
     # it: a document could be reported as having more independent evidence than
     # any of it had reached the number.
-    scored_fams = sum(1 for k in result
-                      if not k.startswith("_")
-                      and k not in _SCORE_REPORT_ONLY
-                      and k not in _SCORE_STYLE_ONLY)
-    result["_metrics"].update(score_confidence(count_words(text), scored_fams))
+    scored_fams = {
+        int(k.split("_", 1)[0])
+        for k in result
+        if not k.startswith("_")
+        and k not in _SCORE_REPORT_ONLY
+        and k not in _SCORE_STYLE_ONLY
+    }
+    result["_metrics"].update(score_confidence(count_words(text), len(scored_fams)))
 
     return result
 
@@ -1956,12 +1941,24 @@ def score_confidence(words: int, families: int) -> dict:
 _ZIP_DOC = {
     ".docx": ("word/document.xml",), ".docm": ("word/document.xml",),
     ".pptx": ("ppt/slides/slide",), ".pptm": ("ppt/slides/slide",),
-    ".xlsx": ("xl/sharedStrings.xml",), ".xlsm": ("xl/sharedStrings.xml",),
+    ".xlsx": ("xl/sharedStrings.xml", "xl/worksheets/sheet"),
+    ".xlsm": ("xl/sharedStrings.xml", "xl/worksheets/sheet"),
     ".odt": ("content.xml",), ".odp": ("content.xml",), ".ods": ("content.xml",),
     ".epub": (".xhtml", ".html"),
 }
 _BLOCK_TAGS = {"p", "h", "br", "tab", "tr", "title", "caption"}
 _TEXT_TAGS = {"t", "seg", "span"}
+# Markup that carries no prose.
+_EPUB_SKIP_TAGS = {"head", "script", "style", "nav", "svg", "template",
+                   "noscript"}
+_EPUB_MAX_DEPTH = 100
+_ZIP_MEMBER_CAP = 32 * 1024 * 1024
+
+_EPUB_BLOCK_TAGS = {
+    "address", "article", "aside", "blockquote", "br", "caption", "div",
+    "footer", "h1", "h2", "h3", "h4", "h5", "h6", "header", "li",
+    "main", "nav", "p", "section", "table", "td", "th", "title", "tr",
+}
 
 
 def _local(tag: str) -> str:
@@ -1989,6 +1986,29 @@ def _numeric_entities(data: bytes) -> bytes:
     return _NAMED_ENTITY.sub(sub, data)
 
 
+def _strip_prefixed_attrs(blob: bytes) -> bytes:
+    """Drop namespace-prefixed attributes so an undeclared prefix cannot
+    take a whole chapter down. Attributes hold no prose."""
+    return re.sub(rb'''[ ]+[A-Za-z_][-\w.]*:[A-Za-z_][-\w.]*[ ]*=[ ]*("[^"]*"|'[^']*')''', b'', blob)
+
+
+def _epub_text(el, buf: list, depth: int = 0) -> None:
+    """Pre-order text of an XHTML tree, skipping subtrees that carry no prose."""
+    tag = _local(el.tag)
+    if tag in _EPUB_SKIP_TAGS or depth > _EPUB_MAX_DEPTH:
+        if el.tail:
+            buf.append(el.tail)
+        return
+    if tag in _EPUB_BLOCK_TAGS and buf and buf[-1] != "\n":
+        buf.append("\n")
+    if el.text:
+        buf.append(el.text)
+    for child in el:
+        _epub_text(child, buf, depth + 1)
+    if el.tail:
+        buf.append(el.tail)
+
+
 def extract_office_text(path: str) -> str:
     """Pull the visible text out of a zip-based document. Standard library only."""
     import xml.etree.ElementTree as ET
@@ -1998,28 +2018,50 @@ def extract_office_text(path: str) -> str:
     wanted = _ZIP_DOC.get(ext)
     if not wanted:
         return ""
+    epub = ext == ".epub"
     out: list = []
     with zipfile.ZipFile(path) as z:
         names = [n for n in z.namelist() if any(w in n for w in wanted)]
         names.sort(key=_reading_order)
         for name in names:
+            # Bound what an archive member may expand to.
             try:
-                root = ET.fromstring(_numeric_entities(z.read(name)))
-            except (ET.ParseError, KeyError):
+                if z.getinfo(name).file_size > _ZIP_MEMBER_CAP:
+                    continue
+            except KeyError:
+                continue
+            try:
+                blob = z.read(name)
+            except (KeyError, zipfile.BadZipFile, EOFError):
+                continue
+            try:
+                root = ET.fromstring(_numeric_entities(blob))
+            except ET.ParseError:
+                # Prefixed attributes carry no prose; drop them and retry.
+                try:
+                    root = ET.fromstring(_numeric_entities(_strip_prefixed_attrs(blob)))
+                except ET.ParseError:
+                    continue
+            except KeyError:
                 continue
             buf: list = []
-            for el in root.iter():
-                tag = _local(el.tag)
-                if tag in _TEXT_TAGS and el.text:
-                    buf.append(el.text)
-                elif tag in _BLOCK_TAGS:
-                    if buf and buf[-1] != "\n":
-                        buf.append("\n")
-                    if el.text and tag not in _TEXT_TAGS:
+            if epub:
+                _epub_text(root, buf)
+            else:
+                for el in root.iter():
+                    tag = _local(el.tag)
+                    if tag in _TEXT_TAGS and el.text:
                         buf.append(el.text)
-                if el.tail and el.tail.strip():
-                    buf.append(el.tail)
+                    elif tag in _BLOCK_TAGS:
+                        if buf and buf[-1] != "\n":
+                            buf.append("\n")
+                        if el.text:
+                            buf.append(el.text)
+                    if el.tail and el.tail.strip():
+                        buf.append(el.tail)
             chunk = "".join(buf)
+            if epub:
+                chunk = re.sub(r"[ \t]+\n", "\n", chunk)
             if chunk.strip():
                 out.append(chunk)
     text = "\n\n".join(out)

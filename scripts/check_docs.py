@@ -104,6 +104,7 @@ MARKET = json.loads((REPO / ".claude-plugin" / "marketplace.json").read_text(enc
 PATTERNS = (REPO / "references" / "patterns.md").read_text(encoding="utf-8")
 
 VERSION = PLUGIN["version"]
+PUBLIC_RELEASE_VERSION = "0.9.2"
 
 HEADINGS = re.findall(r"^### (\d+)\. ", PATTERNS, re.M)
 CATALOGUE = len(re.findall(r"^### ", PATTERNS, re.M))
@@ -194,8 +195,24 @@ def tool(name):
     return found
 
 
+def bash_tool():
+    # PowerShell may resolve `bash` to the disabled WSL app alias. Prefer Git Bash on
+    # Windows, and prove the selected shell can run the Node-based hook suite.
+    candidates = [r"C:\Program Files\Git\bin\bash.exe", shutil.which("bash"),
+                  r"C:\Program Files\Git\usr\bin\bash.exe"]
+    seen = set()
+    for candidate in candidates:
+        if not candidate or candidate in seen or not Path(candidate).exists():
+            continue
+        seen.add(candidate)
+        probe = run([candidate, "-lc", "command -v node"])
+        if probe.returncode == 0 and probe.stdout.strip():
+            return candidate
+    raise SystemExit("check_docs: no bash that can find node is available")
+
+
 def hook_check_count():
-    out = run([tool("bash"), "tests/test_hooks.sh"])
+    out = run([bash_tool(), "tests/test_hooks.sh"])
     hit = re.search(r"hook tests: (\d+) passed, (\d+) failed", out.stdout)
     if not hit:
         raise SystemExit("check_docs: the hook suite produced no count\n"
@@ -428,25 +445,28 @@ def svg_pass():
 
     readme = FLAT[REPO / "README.md"]
     figures = [t for t in light if re.fullmatch(r"0\.\d{3}", t)]
-    labels = [t for t in light if re.fullmatch(r"[A-Za-z][A-Za-z ]{3,}", t)
-              and t not in ("against Mixtral",)]
-    check("the detection chart renders four figures", len(figures) == 4,
+    record = json.loads(RAW[REPO / "docs" / "research" /
+                            "frontier-benchmark-results.json"])
+    canonical = {name: row["auc"] for name, row in record["public_arms"].items()}
+    charted = {}
+    for index, label in enumerate(light[:-1]):
+        if label in canonical and re.fullmatch(r"0\.\d{3}", light[index + 1]):
+            charted[label] = light[index + 1]
+    tabled = {}
+    for match in re.finditer(
+            r"^\| ([^|]+?) \| \*\*(0\.\d{3})\*\* \| ([^|]+?) \| ([^|]+?) \|$",
+            RAW[REPO / "README.md"], re.M):
+        tabled[match.group(1)] = {
+            "auc": match.group(2),
+            "ci": match.group(3).strip(),
+            "default": match.group(4).strip(),
+        }
+    check("the detection chart renders five figures", len(figures) == 5,
           "assets/detection-light.svg renders %r" % (figures,))
-    for fig in figures:
-        check("README.md quotes the charted figure %s" % fig, fig in readme,
-              "assets/detection-light.svg renders %s and README.md never states it"
-              % fig)
-    for label in labels:
-        check("README.md names the charted corpus %r" % label, label in readme,
-              "assets/detection-light.svg labels a bar %r and README.md never "
-              "names it" % label)
-    for doc in DOCS:
-        for quoted in set(re.findall(r"\b0\.\d{3}\b", FLAT[doc])):
-            check("%s: %s is a charted figure" % (REL[doc], quoted),
-                  quoted in figures,
-                  "%s quotes %s and no committed chart renders it"
-                  % (REL[doc], quoted))
-
+    eq("the detection chart matches the canonical arm-to-AUC mapping",
+       charted, canonical, "assets/detection-light.svg")
+    eq("the README table matches every canonical benchmark value",
+       tabled, record["public_arms"], "README.md")
     joined = " ".join(demo_l)
     hit = re.search(r"(\d+)/(\w+)", joined)
     check("the demo SVG still renders a score and band", hit is not None,
@@ -486,10 +506,10 @@ def svg_pass():
                       and not SKIP_PART & set(p.parts)
                       and re.search(r"font/woff2|font-woff2",
                                     p.read_text(encoding="utf-8", errors="replace")))
-    check("only the two logos carry third-party material",
+    check("only the two logos embed Archivo font data",
           embedded == ["assets/sloptrim-logo-dark.svg", "assets/sloptrim-logo.svg"],
-          "NOTICE says no other file carries third-party material, and a woff2 "
-          "payload sits in %r" % (embedded,))
+          "woff2 font data appears outside the two attributed logo files: %r"
+          % (embedded,))
 
 
 # ------------------------------------------------------------- code agreement
@@ -585,26 +605,67 @@ def code_pass():
               "detect.py puts %r at %d-%d and CHANGELOG.md does not say so"
               % (name, low, high))
 
-    for section in re.findall(r"sections ([\d, and]+) are drawn from Pangram",
-                              FLAT[REPO / "NOTICE"]):
-        for num in re.findall(r"\d+", section):
-            body = re.split(r"^### ", PATTERNS, flags=re.M)
-            hit = [b for b in body if b.startswith(num + ". ")]
-            check("patterns.md section %s cites Pangram" % num,
-                  bool(hit) and "Pangram" in hit[0],
-                  "NOTICE says references/patterns.md section %s draws on Pangram "
-                  "Labs and that section does not cite them" % num)
-    check("tests/validation_corpus.py holds the sample NOTICE names",
-          "h_classic_prose" in (REPO / "tests" / "validation_corpus.py")
-          .read_text(encoding="utf-8"),
-          "NOTICE names h_classic_prose in tests/validation_corpus.py and it is "
-          "not there")
-
     for ext in sorted(ZIP_DOC):
         check("guard.js and detect.py agree that %s is a document" % ext,
               ext in OFFICE_EXT,
               "scripts/detect.py unpacks %s and hooks/sloptrim-guard.js does not "
               "route it" % ext)
+
+
+# --------------------------------------------------------- publication policy
+def publication_pass():
+    eq("plugin.json ships the approved public release",
+       VERSION, PUBLIC_RELEASE_VERSION, ".claude-plugin/plugin.json")
+
+    surfaces = {
+        "README.md": re.search(r"version-(\d+\.\d+\.\d+)",
+                                RAW[REPO / "README.md"]),
+        "SKILL.md": re.search(r"^version: (\d+\.\d+\.\d+)$",
+                               RAW[REPO / "SKILL.md"], re.M),
+        "CITATION.cff": re.search(r"^version: (\d+\.\d+\.\d+)$",
+                                   RAW[REPO / "CITATION.cff"], re.M),
+    }
+    for name, match in surfaces.items():
+        eq("%s ships the approved public release" % name,
+           match.group(1) if match else None, PUBLIC_RELEASE_VERSION, name)
+
+    results = json.loads(RAW[REPO / "docs" / "research" /
+                             "frontier-benchmark-results.json"])
+    expected_arms = ["GPT-4o", "Claude 3.5 Sonnet", "o1-pro",
+                     "paraphrased GPT-4o", "humanized o1-pro"]
+    eq("the published benchmark contains the five reproducible public arms",
+       list(results.get("public_arms", {})), expected_arms,
+       "docs/research/frontier-benchmark-results.json")
+    check("the published benchmark has no unreproducible current-model arm",
+          "current_arm" not in results,
+          "docs/research/frontier-benchmark-results.json publishes current_arm "
+          "without its source texts")
+
+    research_files = sorted(
+        path.relative_to(REPO).as_posix()
+        for path in (REPO / "docs" / "research").glob("*")
+        if path.is_file()
+    )
+    eq("the public research directory contains only aggregate benchmark data",
+       research_files, ["docs/research/frontier-benchmark-results.json"],
+       "docs/research")
+    planning_files = ([path for path in (REPO / "docs" / "superpowers").rglob("*")
+                       if path.is_file()]
+                      if (REPO / "docs" / "superpowers").exists() else [])
+    check("the public tree contains no internal planning directory",
+          not planning_files,
+          "docs/superpowers contains internal workflow files")
+
+    all_public_text = "\n".join(RAW.values())
+    for marker in (r"C:\\Users\\", "/Users/", "/home/"):
+        check("public documents contain no local path marker %s" % marker,
+              marker not in all_public_text,
+              "a public document contains the local path marker %s" % marker)
+    notice = RAW[REPO / "NOTICE"]
+    for required in ("Archivo", "SIL Open Font License"):
+        check("NOTICE retains %s attribution" % required,
+              required in notice,
+              "NOTICE no longer contains %r" % required)
 
 
 # ----------------------------------------------------- re-derivability and CI
@@ -616,14 +677,21 @@ DERIVE = re.compile(r"[^.]*\b(re-?deriv\w*|recomput\w*|reproduc\w*)\b[^.]*")
 
 
 def honesty_pass():
+    public_benchmark = all((REPO / path).exists() for path in (
+        "scripts/benchmark_frontier.py",
+        "docs/research/frontier-benchmark-results.json",
+    ))
     for path in DOCS:
         for m in DERIVE.finditer(FLAT[path]):
             sentence = m.group(0).strip()
             if not MEASURE.search(sentence):
                 continue
+            benchmark_claim = (public_benchmark and
+                               re.search(r"\bbenchmark\b", sentence, re.I))
             check("%s: no measurement is claimed re-derivable here" % REL[path],
-                  bool(NEGATION.search(sentence)),
-                  "%s says %r, and no corpus or harness is in this repository"
+                  bool(NEGATION.search(sentence) or benchmark_claim),
+                  "%s says %r, without naming the published benchmark whose "
+                  "harness and aggregate record are in this repository"
                   % (REL[path], sentence[:200]))
         for stray in re.findall(r"\b(?:bench|demo)/[\w./-]+", FLAT[path]):
             check("%s: no path into a directory that was not published" % REL[path],
@@ -670,6 +738,7 @@ def main():
     link_pass()
     svg_pass()
     code_pass()
+    publication_pass()
     honesty_pass()
     total = PASSED + len(FAILURES) + len(self_claims())
     self_pass(total)

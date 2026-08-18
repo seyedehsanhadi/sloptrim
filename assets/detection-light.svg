@@ -1,32 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 756 288" width="756" height="288" role="img" aria-label="Detection by corpus, ROC-AUC. American textbooks 0.963, RAID 0.791, MAGE 0.669, a frontier model 0.551. 0.5 is a coin flip.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 756 330" width="756" height="330" role="img" aria-label="Public matched benchmark ROC-AUC. GPT-4o 0.946, Claude 3.5 Sonnet 0.842, o1-pro 0.877, paraphrased GPT-4o 0.838, humanized o1-pro 0.762.">
 <style>text{font-family:ui-sans-serif,system-ui,"Segoe UI",sans-serif}.n{font-family:ui-monospace,Menlo,Consolas,monospace}</style>
-<line x1="200.0" y1="30" x2="200.0" y2="268" stroke="#e6ebf2" stroke-width="1"/>
+<line x1="200.0" y1="30" x2="200.0" y2="306" stroke="#e6ebf2" stroke-width="1"/>
 <text x="200.0" y="22" fill="#57687f" font-size="12" text-anchor="middle" class="n">0.5</text>
-<line x1="303.2" y1="30" x2="303.2" y2="268" stroke="#e6ebf2" stroke-width="1"/>
+<line x1="303.2" y1="30" x2="303.2" y2="306" stroke="#e6ebf2" stroke-width="1"/>
 <text x="303.2" y="22" fill="#57687f" font-size="12" text-anchor="middle" class="n">0.6</text>
-<line x1="406.4" y1="30" x2="406.4" y2="268" stroke="#e6ebf2" stroke-width="1"/>
+<line x1="406.4" y1="30" x2="406.4" y2="306" stroke="#e6ebf2" stroke-width="1"/>
 <text x="406.4" y="22" fill="#57687f" font-size="12" text-anchor="middle" class="n">0.7</text>
-<line x1="509.6" y1="30" x2="509.6" y2="268" stroke="#e6ebf2" stroke-width="1"/>
+<line x1="509.6" y1="30" x2="509.6" y2="306" stroke="#e6ebf2" stroke-width="1"/>
 <text x="509.6" y="22" fill="#57687f" font-size="12" text-anchor="middle" class="n">0.8</text>
-<line x1="612.8" y1="30" x2="612.8" y2="268" stroke="#e6ebf2" stroke-width="1"/>
+<line x1="612.8" y1="30" x2="612.8" y2="306" stroke="#e6ebf2" stroke-width="1"/>
 <text x="612.8" y="22" fill="#57687f" font-size="12" text-anchor="middle" class="n">0.9</text>
-<line x1="716.0" y1="30" x2="716.0" y2="268" stroke="#e6ebf2" stroke-width="1"/>
+<line x1="716.0" y1="30" x2="716.0" y2="306" stroke="#e6ebf2" stroke-width="1"/>
 <text x="716.0" y="22" fill="#57687f" font-size="12" text-anchor="middle" class="n">1.0</text>
-<text x="186" y="50" fill="#16130F" font-size="15" text-anchor="end">American textbooks</text>
-<text x="186" y="67" fill="#57687f" font-size="11" text-anchor="end">against Mixtral</text>
-<rect x="200" y="36" width="477.8" height="18" rx="3" fill="#c8d2df"/>
-<text x="685.8" y="50" fill="#16130F" font-size="14" class="n">0.963</text>
-<text x="186" y="104" fill="#16130F" font-size="15" text-anchor="end">RAID</text>
-<text x="186" y="121" fill="#57687f" font-size="11" text-anchor="end">4 generators, no evasion</text>
-<rect x="200" y="90" width="300.3" height="18" rx="3" fill="#c8d2df"/>
-<text x="508.3" y="104" fill="#16130F" font-size="14" class="n">0.791</text>
-<text x="186" y="158" fill="#16130F" font-size="15" text-anchor="end">MAGE</text>
-<text x="186" y="175" fill="#57687f" font-size="11" text-anchor="end">15 generators across 10 domains</text>
-<rect x="200" y="144" width="174.4" height="18" rx="3" fill="#E2542B"/>
-<text x="382.4" y="158" fill="#16130F" font-size="14" class="n">0.669</text>
-<text x="186" y="212" fill="#16130F" font-size="15" text-anchor="end">a frontier model</text>
-
-<rect x="200" y="198" width="52.6" height="18" rx="3" fill="#f4f6f9" stroke="#57687f" stroke-width="1" stroke-dasharray="3 3"/>
-<text x="260.6" y="212" fill="#16130F" font-size="14" class="n">0.551</text>
-<text x="200" y="284" fill="#57687f" font-size="12">0.5 is a coin flip. The worst corpus is the headline, not the average.</text>
+<text x="186" y="50" fill="#16130F" font-size="15" text-anchor="end">GPT-4o</text>
+<rect x="200" y="36" width="460.3" height="18" rx="3" fill="#c8d2df"/>
+<text x="668.3" y="50" fill="#16130F" font-size="14" class="n">0.946</text>
+<text x="186" y="102" fill="#16130F" font-size="15" text-anchor="end">Claude 3.5 Sonnet</text>
+<rect x="200" y="88" width="352.9" height="18" rx="3" fill="#c8d2df"/>
+<text x="560.9" y="102" fill="#16130F" font-size="14" class="n">0.842</text>
+<text x="186" y="154" fill="#16130F" font-size="15" text-anchor="end">o1-pro</text>
+<rect x="200" y="140" width="389.1" height="18" rx="3" fill="#c8d2df"/>
+<text x="597.1" y="154" fill="#16130F" font-size="14" class="n">0.877</text>
+<text x="186" y="206" fill="#16130F" font-size="15" text-anchor="end">paraphrased GPT-4o</text>
+<rect x="200" y="192" width="347.8" height="18" rx="3" fill="#E2542B"/>
+<text x="555.8" y="206" fill="#16130F" font-size="14" class="n">0.838</text>
+<text x="186" y="258" fill="#16130F" font-size="15" text-anchor="end">humanized o1-pro</text>
+<rect x="200" y="244" width="270.4" height="18" rx="3" fill="#E2542B"/>
+<text x="478.4" y="258" fill="#16130F" font-size="14" class="n">0.762</text>
+<text x="200" y="326" fill="#57687f" font-size="12">AUC ranks scores; it is not guard-threshold recall or proof of authorship.</text>
 </svg>

@@ -7,15 +7,16 @@
   </picture>
 </h1>
 
-**A local detector for AI-writing patterns. It scores every prose file your agent
-saves and asks for the flagged spans to be fixed.**
+**A local detector for AI-writing patterns. It scores the first 256 KB of extracted
+prose in files saved through supported file-edit tools—accepting plain text up to
+512 KB and supported archives up to 4 MB—and asks for the flagged spans to be fixed.**
 Python standard library only, no network, no model. Prose only, never code.
 
 [![test](https://github.com/seyedehsanhadi/sloptrim/actions/workflows/test.yml/badge.svg)](https://github.com/seyedehsanhadi/sloptrim/actions/workflows/test.yml)
-[![Version](https://img.shields.io/badge/version-0.9.1-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.9.2-blue)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE.txt)
 [![Dependencies](https://img.shields.io/badge/dependencies-none-blue)](scripts/detect.py)
-[![Tests](https://img.shields.io/badge/tests-166-blue)](tests/)
+[![Tests](https://img.shields.io/badge/tests-191-blue)](tests/)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](scripts/detect.py)
 
 [Install](#install) &middot; [What it does](#what-it-does) &middot; [Measured](#measured) &middot; [Limits](#what-it-cannot-do) &middot; [Patterns](references/patterns.md) &middot; [Ethics](ETHICS.md)
@@ -79,10 +80,10 @@ because they are typographic habits.
 
 | | |
 |---|---|
-| Formats | 20, including `.docx`, `.pptx`, `.xlsx`, OpenDocument, `.epub`, `.ipynb`, LaTeX |
+| Formats | 20, including `.docx`, `.pptx`, `.xlsx`, OpenDocument, `.epub`, `.ipynb`, LaTeX; the first 256 KB of extracted prose is scored |
 | Runs in | Claude Code, on save. Other agents via `/sloptrim init`, which writes the contract to `AGENTS.md`, and `.cursor/rules/` |
 | Needs | Node for the hooks, Python 3.9 or newer for the detector, nothing else |
-| Suite | 99 Python tests and 67 hook checks, green in CI on Linux, Windows and macOS, against Python 3.9 and 3.13 (macOS on 3.13) |
+| Suite | 119 Python tests and 72 hook checks, green in CI on Linux, Windows and macOS, against Python 3.9 and 3.13 (macOS on 3.13) |
 | Does not see | A file written by a `Bash` command, which reaches disk without passing `Write` or `Edit` |
 
 | Command | Effect |
@@ -103,39 +104,41 @@ A score lands in one of five bands: `clean`, `light tells`, `mixed`, `heavy tell
 
 ## Measured
 
-**The figures below were measured against corpora held privately. Neither those
-corpora nor the harness that read them is in this repository, and nothing here
-recomputes any of it.** They are cited as results, with the corpus named, and cannot
-be re-derived from what you have cloned.
+Sloptrim's public matched benchmark uses five separate 30-human/30-machine arms
+from the [Human Detectors](https://github.com/jenna-russell/human_detectors)
+release, pinned at commit `afcf03d`. Each arm is matched by prompt and scored
+separately. AUC is a ranking measure, not accuracy at Sloptrim's guard threshold.
 
-False positives on human prose, at the default threshold, worst corpus first:
-
-| corpus | n | rate |
-|---|---|---|
-| American textbooks, 30 titles | 9,333 | **0.85%** |
-| MAGE human web text | 504 | **0.40%** |
-| PubMed abstracts, pre-2020 | 529 | 0.00% |
-| arXiv abstracts, pre-2021 | 939 | 0.00% |
-
-Detection, ROC-AUC per corpus. The worst one is the headline:
+| machine arm | ROC-AUC | bootstrap 95% CI | default TPR / FPR |
+|---|---:|---:|---:|
+| GPT-4o | **0.946** | 0.876–0.992 | 46.7% / 0% |
+| Claude 3.5 Sonnet | **0.842** | 0.729–0.936 | 3.3% / 0% |
+| o1-pro | **0.877** | 0.771–0.957 | 23.3% / 6.7% |
+| paraphrased GPT-4o | **0.838** | 0.735–0.929 | 6.7% / 3.3% |
+| humanized o1-pro | **0.762** | 0.648–0.871 | 0% / 3.3% |
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/detection-dark.svg">
-  <img src="assets/detection-light.svg" width="756" alt="Detection by corpus, ROC-AUC: American textbooks 0.963, RAID 0.791, MAGE 0.669, a frontier model 0.551. 0.5 is a coin flip.">
+  <img src="assets/detection-light.svg" width="756" alt="Public matched benchmark ROC-AUC: GPT-4o 0.946, Claude 3.5 Sonnet 0.842, o1-pro 0.877, paraphrased GPT-4o 0.838, humanized o1-pro 0.762.">
 </picture>
+
+Across these arms, Sloptrim achieved ROC-AUC **0.762–0.946**. Confidence intervals
+use 10,000 paired prompt-cluster bootstrap resamples. The public
+[result record](docs/research/frontier-benchmark-results.json) pins the source hash;
+the harness refuses any other file. The benchmark texts are not redistributed here.
+
+```bash
+git clone https://github.com/jenna-russell/human_detectors.git
+git -C human_detectors checkout afcf03d14d2da4a038d8d0fafa5ec779dd858181
+python scripts/benchmark_frontier.py PATH_TO_HUMAN_DETECTORS_JSON
+```
 
 ## What it cannot do
 
-**It cannot tell you whether a current frontier model wrote something.** The machine
-arms above come from GPT-2, GPT-J, OPT, FLAN-T5, MPT, Mistral, Mixtral, GPT-3.5 and
-GPT-4, nothing newer. A run against a current frontier model measured ROC-AUC 0.551,
-close to a coin flip.
-
-**The writing contract has no measured effect.** Twenty documents drafted twice from
-one brief with the switch toggled, both arms verified from the transcripts: mean
-change +2.25, bootstrap 95% CI -5.65 to +9.90, sign test p = 0.27. Its banned-word
-list works; nothing else in it does. That is 20 pairs against the 40 the protocol asks
-for, so the question is unresolved rather than settled.
+**It cannot prove whether a model wrote something.** The public arms show that the
+score often ranks these machine samples above matched human samples. The threshold
+results show why that is not the same as a dependable yes/no classifier: sensitivity
+changes sharply with model, prompt, formatting and threshold.
 
 **It is not an authorship classifier and must not be used as one.** A score says
 something about writing, never about a person. Read [ETHICS.md](ETHICS.md).

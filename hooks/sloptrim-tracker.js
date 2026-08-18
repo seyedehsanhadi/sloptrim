@@ -60,11 +60,17 @@ function check(fileArg) {
   const tells = Object.entries(rep)
     .filter(([k, v]) => !k.startsWith('_') && v && v.label)
     .map(([k, v]) => `${v.label} (x${v.count})`);
+  const confidence = m.confidence || 'unknown';
+  const confidenceLine = m.confidence_reason
+    ? `confidence: ${confidence} - ${m.confidence_reason}`
+    : `confidence: ${confidence}`;
   return [
     `${path.basename(p)} - ${verdict(m.ai_tell_score)} (score ${m.ai_tell_score}/100, band: ${m.ai_tell_band})`,
+    confidenceLine,
+    m.truncated ? 'coverage: first 256 KB only' : null,
     tells.length ? `tells: ${tells.slice(0, 8).join('; ')}` : 'tells: none',
     'report only - say "sloptrim this file" for the rewrite.',
-  ].join('\n');
+  ].filter(Boolean).join('\n');
 }
 
 function doctor() {
@@ -99,7 +105,7 @@ function doctor() {
     : mode === 'off'
       ? `Nothing is wrong. It is switched off, so saved files are not scored. ${SELF} on turns it back on.`
       : scoreOk
-        ? `All good. It is on: every prose file saved from here is scored, and the tells are named. ${SELF} show reveals what got checked.`
+        ? `All good. It is on: prose files are accepted within the 512 KB plain-text and 4 MB archive limits; the detector scores the first 256 KB of extracted prose, and ${SELF} show identifies partial or skipped checks.`
         : `The install is sound but no file has been scored yet. Save a prose file, then ${SELF} show.`);
   return lines.join('\n');
 }
@@ -142,7 +148,9 @@ function showLedger(sid) {
   }
   const lines = ['sloptrim - prose delivered this session (newest first):'];
   for (const r of rows.slice().reverse()) {
-    if (r.kind === 'binary') {
+    if (r.kind === 'skipped' && r.reason === 'size') {
+      lines.push(`  ${r.file} - not scored: exceeds the ${r.limit / 1024} KB limit`);
+    } else if (r.kind === 'binary') {
       lines.push(`  ${r.file} - binary, shaped at write-time by the contract (not re-scored)`);
     } else {
       // Records written before this field existed carry no verdict, so say what was
@@ -150,7 +158,8 @@ function showLedger(sid) {
       const word = r.flagged === undefined ? 'tells found'
         : r.flagged ? 'flagged for fixing' : 'seen, under the threshold';
       const tells = r.tells && r.tells.length ? ` - ${word}: ${r.tells.join('; ')}` : '';
-      lines.push(`  ${r.file} - ${verdict(r.score)} (score ${r.score}/${r.band})${tells}`);
+      const coverage = r.truncated ? ', first 256 KB only' : '';
+      lines.push(`  ${r.file} - ${verdict(r.score)} (score ${r.score}/${r.band}${coverage})${tells}`);
     }
   }
   return lines.join('\n');

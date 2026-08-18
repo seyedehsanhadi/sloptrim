@@ -18,9 +18,10 @@ try {
 const WELCOME = [
   'sloptrim is installed and on.',
   '',
-  'Every prose file saved from here is scored against 71 documented patterns, and the',
-  'ones that fired are named so they get fixed before the file ships. Code, config and',
-  'commit messages are never touched.',
+  'Prose saved through supported file-edit tools is scored against 71 documented patterns.',
+  'Files are accepted up to 512 KB for plain text and 4 MB for supported archives.',
+  'The detector scores the first 256 KB of extracted prose. Fired patterns',
+  'are named so they get fixed before the file ships. Code, config and commits are untouched.',
   '',
   'It is a command-line tool and a plugin. There is no website and no hosted version.',
   'Nothing you write is uploaded, there is no account, and no text leaves this machine.',

@@ -57,6 +57,22 @@ def make_xlsx(path, text=SLOP):
     return path
 
 
+def make_inline_xlsx(path, text=SLOP):
+    items = "".join(
+        '<row r="%d"><c r="A%d" t="inlineStr"><is><t>%s</t></is></c></row>'
+        % (i, i, p)
+        for i, p in enumerate(_paras(text), 1)
+    )
+    with zipfile.ZipFile(path, "w") as z:
+        z.writestr("[Content_Types].xml", '<?xml version="1.0"?><Types/>')
+        z.writestr(
+            "xl/worksheets/sheet1.xml",
+            '<?xml version="1.0"?><worksheet xmlns="%s"><sheetData>%s'
+            '</sheetData></worksheet>' % (P, items),
+        )
+    return path
+
+
 def make_odf(path, text=SLOP):
     body = "".join('<text:p>%s</text:p>' % p for p in _paras(text))
     with zipfile.ZipFile(path, "w") as z:
@@ -65,6 +81,16 @@ def make_odf(path, text=SLOP):
                    '<?xml version="1.0"?><office:document-content xmlns:office="%s" '
                    'xmlns:text="%s"><office:body><office:text>%s</office:text>'
                    '</office:body></office:document-content>' % (ODF_O, ODF_T, body))
+    return path
+
+
+def make_epub(path, body):
+    with zipfile.ZipFile(path, "w") as z:
+        z.writestr(
+            "chapter.xhtml",
+            '<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml">'
+            "<body>%s</body></html>" % body,
+        )
     return path
 
 
@@ -87,6 +113,29 @@ def test_slop_is_scored(tmp_path, ext, build):
     p = build(tmp_path / ("sample." + ext))
     score = detect.scan(detect.read_input([str(p)]))["_metrics"]["ai_tell_score"]
     assert score >= 40, "%s: dense slop scored only %d" % (ext, score)
+
+
+def test_xlsx_shared_and_inline_strings_are_read(tmp_path):
+    shared = detect.read_input([str(make_xlsx(tmp_path / "shared.xlsx"))])
+    inline = detect.read_input([str(make_inline_xlsx(tmp_path / "inline.xlsx"))])
+    assert "delve" in shared and "game-changer" in shared
+    assert "delve" in inline and "game-changer" in inline
+
+
+def test_epub_plain_and_formatted_text_stay_in_reading_order(tmp_path):
+    plain = detect.read_input([
+        str(make_epub(tmp_path / "plain.epub", "<p>Plain paragraph text.</p>"))
+    ])
+    formatted = detect.read_input([
+        str(make_epub(
+            tmp_path / "formatted.epub",
+            '<p>Keep <em>this emphasized text</em> and '
+            '<a href="#">this link</a>.</p><ul><li>List item prose</li></ul>',
+        ))
+    ])
+    assert plain == "Plain paragraph text."
+    assert "Keep this emphasized text and this link." in formatted
+    assert "List item prose" in formatted
 
 
 def test_human_prose_in_a_docx_is_not_flagged(tmp_path):
