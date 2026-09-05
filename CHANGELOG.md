@@ -4,6 +4,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.9.3] - 2026-09-05
+
+### Fixed
+
+- Long invisible-tag and whitespace runs no longer exhaust the saved-file guard's timeout.
+- Markdown fences and indented code stay out of prose scoring.
+- Spreadsheet extraction follows cell references and preserves cell boundaries.
+- OpenDocument extraction preserves linked text and explicit whitespace.
+- Native mixed-script names remain unflagged; homoglyph checks respect the scan window.
+- Malformed notebooks return a clean error.
+- Saved-file hooks resolve relative paths against the supplied working directory and record failed checks.
+- Exporting while switched off writes no files; portable contracts explain how to locate the detector.
+- Coverage messages identify the scan limit as 262,144 characters.
+- Windows test runners use the same Bash environment they probe.
+
 ## [0.9.2] - 2026-08-18
 
 ### Fixed
@@ -78,6 +93,7 @@ First public release. Pre-1.0 interfaces and score calibration may still change.
 - English prose is the supported scope. PDF and RTF are logged but not read, and
   files written through shell commands do not pass saved-file hooks.
 
+[0.9.3]: https://github.com/seyedehsanhadi/sloptrim/releases/tag/v0.9.3
 [0.9.2]: https://github.com/seyedehsanhadi/sloptrim/releases/tag/v0.9.2
 [0.9.1]: https://github.com/seyedehsanhadi/sloptrim/releases/tag/v0.9.1
 [0.9.0]: https://github.com/seyedehsanhadi/sloptrim/releases/tag/v0.9.0

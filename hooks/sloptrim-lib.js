@@ -211,6 +211,7 @@ function sweepLedgers() {
 // portable: the contract is going into a file that gets committed and read on other
 // machines, so it must not carry this machine's install path or the name of its user.
 function contract(mode, portable) {
+  if (mode === 'off') return '';
   const lines = [
     `SLOPTRIM ACTIVE - level: ${mode}`,
     '',
@@ -233,6 +234,7 @@ function contract(mode, portable) {
     const target = mode === 'strict'
       ? 'the clean band (score <= 20), and finish by piping the file through detect.py --clean'
       : 'clean or light tells (score <= 40)';
+    if (portable) lines.push('', 'Resolve the bundled detector before running it: use $CLAUDE_PLUGIN_ROOT/scripts/detect.py when CLAUDE_PLUGIN_ROOT is set; otherwise locate sloptrim/scripts/detect.py in this agent\'s installed skills/plugins and use its absolute path in place of the command below. If unavailable, keep the writing rules and report that file scoring is unavailable when asked.');
     lines.push(
       '',
       `After writing a prose file (.md/.txt), run: python ${portable ? '"$CLAUDE_PLUGIN_ROOT/scripts/detect.py"' : `"${DETECT}"`} "<file>" and read _metrics.ai_tell_score. If the band is worse than the target - ${target} - fix only the flagged spans, at most two passes, keeping rhythm variation (a flattened husk is as obvious as slop). For a deep rewrite, invoke the sloptrim skill.`

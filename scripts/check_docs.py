@@ -104,7 +104,7 @@ MARKET = json.loads((REPO / ".claude-plugin" / "marketplace.json").read_text(enc
 PATTERNS = (REPO / "references" / "patterns.md").read_text(encoding="utf-8")
 
 VERSION = PLUGIN["version"]
-PUBLIC_RELEASE_VERSION = "0.9.2"
+PUBLIC_RELEASE_VERSION = "0.9.3"
 
 HEADINGS = re.findall(r"^### (\d+)\. ", PATTERNS, re.M)
 CATALOGUE = len(re.findall(r"^### ", PATTERNS, re.M))
@@ -164,7 +164,7 @@ ZIP_DOC = set(re.findall(r'"(\.[a-z]+)": \(', SRC))
 _thr = re.search(r"mode === 'strict' \? (\d+) : (\d+)", GUARD)
 STRICT_THRESHOLD, DEFAULT_THRESHOLD = int(_thr.group(1)), int(_thr.group(2))
 PATH_TIMEOUT = int(re.search(r"timeout: (\d+) \}, \[filePath\]", GUARD).group(1)) // 1000
-PIPE_TIMEOUT = int(re.search(r"runDetect\(text, \{ timeout: (\d+)", GUARD).group(1)) // 1000
+PIPE_TIMEOUT = int(re.search(r"runDetectResult\(text, \{ timeout: (\d+)", GUARD).group(1)) // 1000
 
 WORKFLOWS = sorted((REPO / ".github" / "workflows").glob("*.yml")) if \
     (REPO / ".github" / "workflows").is_dir() else []
@@ -212,7 +212,7 @@ def bash_tool():
 
 
 def hook_check_count():
-    out = run([bash_tool(), "tests/test_hooks.sh"])
+    out = run([bash_tool(), "-lc", 'exec bash "$1"', "sloptrim-tests", "tests/test_hooks.sh"])
     hit = re.search(r"hook tests: (\d+) passed, (\d+) failed", out.stdout)
     if not hit:
         raise SystemExit("check_docs: the hook suite produced no count\n"

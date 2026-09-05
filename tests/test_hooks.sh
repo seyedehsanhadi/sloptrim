@@ -81,7 +81,7 @@ NM="$(dirname "$SLOP")/node_modules.md"
 cp "$SLOP" "$NM"
 out="$(printf '{"tool_name":"Write","tool_input":{"file_path":"%s"}}' "$NM" | node "$REPO/hooks/sloptrim-guard.js")"
 [ -n "$out" ]; check "a file merely named node_modules.md is still scored" $?
-mkdir -p "$(dirname "$SLOP")/node_modules"
+mkdir "$(dirname "$SLOP")/node_modules"
 NMD="$(dirname "$SLOP")/node_modules/readme.md"
 cp "$SLOP" "$NMD"
 out="$(printf '{"tool_name":"Write","tool_input":{"file_path":"%s"}}' "$NMD" | node "$REPO/hooks/sloptrim-guard.js")"
@@ -176,7 +176,7 @@ TRUNC="$CLAUDE_CONFIG_DIR/truncated.md"
 node -e 'let s=""; for(let i=0;s.length<270000;i++)s+=`Record ${i} gives the measured value for ordinary item ${i}. `; require("fs").writeFileSync(process.argv[1],s)' "$TRUNC"
 printf '{"session_id":"truncated","tool_input":{"file_path":"%s"}}' "$TRUNC" | node "$REPO/hooks/sloptrim-guard.js" >/dev/null
 out="$(echo '{"session_id":"truncated","prompt":"/sloptrim show"}' | node "$REPO/hooks/sloptrim-tracker.js")"
-echo "$out" | grep -q "first 256 KB only"; check "show discloses a partial 256 KB scan" $?
+echo "$out" | grep -q "first 262,144 characters only"; check "show discloses a partial 262,144 characters scan" $?
 out="$(echo '{"session_id":"sess-b","prompt":"/sloptrim show"}' | node "$REPO/hooks/sloptrim-tracker.js")"
 echo "$out" | grep -q "nothing scored yet"; check "another session sees an empty ledger" $?
 echo '{"source":"startup"}' | node "$REPO/hooks/sloptrim-activate.js" >/dev/null
@@ -206,7 +206,7 @@ echo "$out" | grep -qE "reads .*score [0-9]+/100"; check "check scores a file wi
 echo "$out" | grep -q "report only"; check "check declares itself report-only" $?
 out="$(echo '{"prompt":"/sloptrim check no_such_file.md"}' | node "$REPO/hooks/sloptrim-tracker.js")"
 echo "$out" | grep -q "cannot read"; check "check fails cleanly on a missing file" $?
-INITDIR="$CLAUDE_CONFIG_DIR/initrepo"; mkdir -p "$INITDIR"
+INITDIR="$CLAUDE_CONFIG_DIR/initrepo"; mkdir "$INITDIR"
 out="$(cd "$INITDIR" && echo '{"prompt":"/sloptrim init"}' | node "$REPO/hooks/sloptrim-tracker.js")"
 grep -q "sloptrim-contract" "$INITDIR/AGENTS.md"; check "init writes the contract into AGENTS.md" $?
 out="$(cd "$INITDIR" && echo '{"prompt":"/sloptrim init"}' | node "$REPO/hooks/sloptrim-tracker.js")"

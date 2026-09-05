@@ -20,7 +20,7 @@ const WELCOME = [
   '',
   'Prose saved through supported file-edit tools is scored against 71 documented patterns.',
   'Files are accepted up to 512 KB for plain text and 4 MB for supported archives.',
-  'The detector scores the first 256 KB of extracted prose. Fired patterns',
+  'The detector scores the first 262,144 characters of extracted prose. Fired patterns',
   'are named so they get fixed before the file ships. Code, config and commits are untouched.',
   '',
   'It is a command-line tool and a plugin. There is no website and no hosted version.',

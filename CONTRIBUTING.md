@@ -5,7 +5,7 @@ The most useful thing you can send is **a document this scores wrongly**: human 
 ## Running the checks
 
 ```bash
-python -m pytest tests/ -q      # 119 tests
+python -m pytest tests/ -q      # 142 tests
 bash tests/test_hooks.sh        # 72 hook checks
 python scripts/detect.py FILE   # JSON: patterns, metrics, the 0-100 score and its band
 ```
@@ -50,7 +50,7 @@ repository never opens a socket, so it cannot ask the remote either. Cut it by h
 push it, or the changelog link is a 404:
 
 ```bash
-git tag -a v0.9.2 -m "sloptrim 0.9.2" && git push origin v0.9.2
+git tag -a v0.9.3 -m "sloptrim 0.9.3" && git push origin v0.9.3
 ```
 
 ## Regenerating the recorded session

@@ -381,24 +381,20 @@ def _has_rtl(text: str) -> bool:
     return _RTL_RE.search(text) is not None
 
 
-def _tag_sequence(text: str, i: int) -> bool:
-    """A tag character belongs to an emoji flag only if the run it sits in
-    starts at a black-flag base. Testing the neighbour alone is not enough:
-    each character of a smuggled payload would vouch for the next one."""
-    j = i
-    while j > 0 and 0xE0020 <= ord(text[j - 1]) <= 0xE007F:
-        j -= 1
-    return j > 0 and text[j - 1] == "\U0001F3F4"
+def _flag_tags(text: str) -> set:
+    """Find flag tags once; walking backwards at every tag is quadratic."""
+    return {i for m in re.finditer("\U0001F3F4[\U000E0020-\U000E007E]+\U000E007F", text)
+            for i in range(m.start() + 1, m.end())}
 
 
 def _keeps_function(ch: str, prev: str, nxt: str, rtl_doc: bool,
-                    text: str = "", idx: int = -1) -> bool:
+                    flag_tag: bool = False) -> bool:
     """True when this invisible character is doing a job here."""
     cp = ord(ch)
     # Emoji tag sequences: the subdivision flags are a base plus tag letters
     # ending in U+E007F. Stripping the tags leaves a plain black flag.
     if 0xE0020 <= cp <= 0xE007F:
-        return idx >= 0 and _tag_sequence(text, idx)
+        return flag_tag
     # Ideographic variation sequences select the right form of a kanji, which
     # is how names and places are written correctly.
     if 0xE0100 <= cp <= 0xE01EF:
@@ -648,7 +644,7 @@ def _native(ch: str) -> bool:
 def _is_mixed_run(run: str) -> bool:
     has_latin = any("a" <= c.lower() <= "z" and ord(c) < 128 for c in run)
     has_confusable = any(ord(c) in CONFUSABLES for c in run)
-    return has_latin and has_confusable
+    return has_latin and has_confusable and not any(_native(c) for c in run)
 
 
 def _fold_run(run: str) -> str:
@@ -1125,13 +1121,14 @@ def detect_invisible_chars(text: str) -> dict:
     rtl_doc = _has_rtl(text)
     n = len(text)
     matches = []
+    flag_tags = _flag_tags(text)
     for m in _SUSPECT.finditer(text):
         ch, i = m.group(0), m.start()
         if ch in "\t\n\r" or not _is_invisible(ch):
             continue
         prev = text[i - 1] if i else ""
         nxt = text[i + 1] if i + 1 < n else ""
-        if not _keeps_function(ch, prev, nxt, rtl_doc, text, i):
+        if not _keeps_function(ch, prev, nxt, rtl_doc, i in flag_tags):
             matches.append(ch)
     if not matches:
         return {"count": 0, "chars": {}}
@@ -1175,6 +1172,7 @@ def clean_text(text: str) -> str:
     out: list = []
     rtl_doc = _has_rtl(text)
     n = len(text)
+    flag_tags = _flag_tags(text)
     for i, ch in enumerate(text):
         if ch in "\t\n\r":
             out.append(ch)
@@ -1186,7 +1184,7 @@ def clean_text(text: str) -> str:
         if _is_invisible(ch):
             prev = text[i - 1] if i else ""
             nxt = text[i + 1] if i + 1 < n else ""
-            if _keeps_function(ch, prev, nxt, rtl_doc, text, i):
+            if _keeps_function(ch, prev, nxt, rtl_doc, i in flag_tags):
                 out.append(ch)
             continue
         if cat == "Zs":
@@ -1201,22 +1199,20 @@ def clean_text(text: str) -> str:
     # write a Markdown hard break. Carving the break out was tried and reverted: it made
     # the rule depend on how the file renders, which is not knowable from the text alone,
     # and it spared the same two spaces in .txt and .rst where they are only debris.
-    cleaned = re.sub(r"[ \t]+(?=\r?\n)", "", cleaned)
+    cleaned = re.sub(r"(?<![ \t])[ \t]+(?=\r?\n)", "", cleaned)
     # Blank leading lines go; the first line's own indentation stays, because
     # four spaces in Markdown is a code block, not stray whitespace.
     cleaned = re.sub(r"\A(?:[ \t]*\r?\n)+", "", cleaned)
-    cleaned = re.sub(r"[ \t\r\n]+$", "", cleaned)
-    return cleaned
+    return cleaned.rstrip(" \t\r\n")
 
 
 def detect_trailing_whitespace(text: str) -> dict:
-    eof = re.search(r"[ \t\r\n]+\Z", text)
-    eof_run = eof.group(0) if eof else ""
+    eof_run = text[len(text.rstrip(" \t\r\n")):]
     trailing_newlines = eof_run.count("\n")
     trailing_blanks = eof_run.count(" ") + eof_run.count("\t")
     lead = re.match(r"[ \t\r\n]+", text)
     leading_ws = len(lead.group(0)) if lead else 0
-    eol_spaces = len(re.findall(r"[ \t]+\r?\n", text))
+    eol_spaces = len(re.findall(r"(?<![ \t])[ \t]+\r?\n", text))
     artifact = (
         trailing_newlines >= 2
         or trailing_blanks > 0
@@ -1529,7 +1525,7 @@ def samples(text: str, pattern: str, flags: int = re.IGNORECASE, k: int = MAX_SA
     return out
 
 
-_FENCE_OPEN = re.compile(r"^\s*(```|~~~)")
+_FENCE_OPEN = re.compile(r"^[ ]{0,3}(`{3,}|~{3,})([^\n]*)$")
 _INLINE_CODE = re.compile(r"`[^`\n]+`")
 
 
@@ -1548,17 +1544,25 @@ def strip_markdown_furniture(text: str) -> str:
 def strip_code(text: str) -> str:
     out = []
     fence = None
+    indented = False
+    blank_before = True
     for line in text.split("\n"):
         m = _FENCE_OPEN.match(line)
-        if fence is None and m:
+        if fence is not None:
+            out.append(" " * len(line))
+            if m and m[1][0] == fence[0] and len(m[1]) >= len(fence) and not m[2].strip():
+                fence = None
+        elif m and (m[1][0] != '`' or '`' not in m[2]):
             fence = m.group(1)
             out.append(" " * len(line))
-        elif fence is not None:
+        elif (blank_before or indented) and line.startswith(('    ', '\t')):
+            indented = True
             out.append(" " * len(line))
-            if line.strip() == fence or line.strip().startswith(fence):
-                fence = None
         else:
+            if line.strip():
+                indented = False
             out.append(line)
+        blank_before = not line.strip()
     blanked = "\n".join(out)
     return _INLINE_CODE.sub(lambda m: " " * len(m.group(0)), blanked)
 
@@ -1822,7 +1826,7 @@ def scan(raw_text: str) -> dict:
             ],
         }
 
-    homoglyphs = detect_homoglyphs(raw_text)
+    homoglyphs = detect_homoglyphs(capped)
     if homoglyphs:
         result["66_homoglyphs"] = {
             "label": "Homoglyph / mixed-script confusables (fold to ASCII)",
@@ -2019,6 +2023,8 @@ def extract_office_text(path: str) -> str:
     if not wanted:
         return ""
     epub = ext == ".epub"
+    spreadsheet = ext in {".xlsx", ".xlsm"}
+    shared_strings = []
     out: list = []
     with zipfile.ZipFile(path) as z:
         names = [n for n in z.namelist() if any(w in n for w in wanted)]
@@ -2047,6 +2053,50 @@ def extract_office_text(path: str) -> str:
             buf: list = []
             if epub:
                 _epub_text(root, buf)
+            elif spreadsheet:
+                if name == "xl/sharedStrings.xml":
+                    shared_strings = ["".join(el.text or "" for el in si.iter()
+                                             if _local(el.tag) == "t")
+                                      for si in root if _local(si.tag) == "si"]
+                    continue
+                for cell in root.iter():
+                    if _local(cell.tag) != "c":
+                        continue
+                    kind = cell.get("t")
+                    value = next((el.text or "" for el in cell
+                                  if _local(el.tag) == "v"), "")
+                    if kind == "s":
+                        try:
+                            index = int(value)
+                        except ValueError:
+                            continue
+                        if not 0 <= index < len(shared_strings):
+                            continue
+                        value = shared_strings[index]
+                    elif kind == "inlineStr":
+                        value = "".join(el.text or "" for el in cell.iter()
+                                        if _local(el.tag) == "t")
+                    elif kind != "str":
+                        continue
+                    if value:
+                        buf.extend((value, "\n"))
+            elif ext in {".odt", ".odp", ".ods"}:
+                space_budget = _ZIP_MEMBER_CAP
+                for el in root.iter():
+                    tag = _local(el.tag)
+                    if tag == "s":
+                        count = next((v for k, v in el.attrib.items() if _local(k) == "c"), "1")
+                        try:
+                            count = min(max(int(count), 1), space_budget)
+                        except ValueError:
+                            count = min(1, space_budget)
+                        el.text = " " * count
+                        space_budget -= count
+                    elif tag in {"tab", "line-break"}:
+                        el.text = "\t" if tag == "tab" else "\n"
+                for el in root.iter():
+                    if _local(el.tag) in {"p", "h"}:
+                        buf.extend(("".join(el.itertext()), "\n"))
             else:
                 for el in root.iter():
                     tag = _local(el.tag)
@@ -2102,12 +2152,20 @@ def extract_notebook_text(path: str) -> str:
             nb = json.load(f)
     except (OSError, ValueError):
         return ""
+    if not isinstance(nb, dict) or not isinstance(nb.get("cells", []), list):
+        return ""
     out = []
     for cell in nb.get("cells", []):
+        if not isinstance(cell, dict):
+            return ""
         if cell.get("cell_type") != "markdown":
             continue
         src = cell.get("source", "")
-        out.append("".join(src) if isinstance(src, list) else str(src))
+        if isinstance(src, list) and all(isinstance(part, str) for part in src):
+            src = "".join(src)
+        if not isinstance(src, str):
+            return ""
+        out.append(src)
     return re.sub(r"\n{3,}", "\n\n", "\n\n".join(out)).strip()
 
 

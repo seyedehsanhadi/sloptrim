@@ -41,7 +41,7 @@ BASH = _bash()
 
 @pytest.mark.skipif(BASH is None, reason="no bash that can find node")
 def test_the_hook_suite_passes():
-    r = subprocess.run([BASH, str(SUITE)], capture_output=True, text=True,
+    r = subprocess.run([BASH, "-lc", 'exec bash "$1"', "sloptrim-tests", str(SUITE)], capture_output=True, text=True,
                        encoding="utf-8", errors="replace", cwd=str(REPO))
     tail = "\n".join((r.stdout or "").strip().splitlines()[-12:])
     assert r.returncode == 0, "tests/test_hooks.sh failed:\n%s\n%s" % (tail, r.stderr[-800:])

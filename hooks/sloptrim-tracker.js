@@ -67,7 +67,7 @@ function check(fileArg) {
   return [
     `${path.basename(p)} - ${verdict(m.ai_tell_score)} (score ${m.ai_tell_score}/100, band: ${m.ai_tell_band})`,
     confidenceLine,
-    m.truncated ? 'coverage: first 256 KB only' : null,
+    m.truncated ? 'coverage: first 262,144 characters only' : null,
     tells.length ? `tells: ${tells.slice(0, 8).join('; ')}` : 'tells: none',
     'report only - say "sloptrim this file" for the rewrite.',
   ].filter(Boolean).join('\n');
@@ -105,7 +105,7 @@ function doctor() {
     : mode === 'off'
       ? `Nothing is wrong. It is switched off, so saved files are not scored. ${SELF} on turns it back on.`
       : scoreOk
-        ? `All good. It is on: prose files are accepted within the 512 KB plain-text and 4 MB archive limits; the detector scores the first 256 KB of extracted prose, and ${SELF} show identifies partial or skipped checks.`
+        ? `All good. It is on: prose files are accepted within the 512 KB plain-text and 4 MB archive limits; the detector scores the first 262,144 characters of extracted prose, and ${SELF} show identifies partial or skipped checks.`
         : `The install is sound but no file has been scored yet. Save a prose file, then ${SELF} show.`);
   return lines.join('\n');
 }
@@ -126,10 +126,13 @@ function initCursorRule() {
 }
 
 function init() {
+  if (readMode() === 'off') return `sloptrim init: switched off; ${SELF} on enables export. No files written.`;
   const target = path.resolve('AGENTS.md');
   const cursor = initCursorRule();
   let existing = '';
-  try { existing = fs.readFileSync(target, 'utf8'); } catch (e) {}
+  try { existing = fs.readFileSync(target, 'utf8'); } catch (e) {
+    if (e.code !== 'ENOENT') return `sloptrim init: cannot read ${target}`;
+  }
   if (existing.includes(INIT_MARKER)) return `sloptrim init: already present in ${target}\n${cursor}`;
   const section = `\n${INIT_MARKER}\n## Prose contract\n\n${contract(readMode(), true)}\n`;
   try {
@@ -152,13 +155,15 @@ function showLedger(sid) {
       lines.push(`  ${r.file} - not scored: exceeds the ${r.limit / 1024} KB limit`);
     } else if (r.kind === 'binary') {
       lines.push(`  ${r.file} - binary, shaped at write-time by the contract (not re-scored)`);
+    } else if (r.kind === 'failed') {
+      lines.push(`  ${r.file} - not scored: ${r.reason}`);
     } else {
       // Records written before this field existed carry no verdict, so say what was
       // found rather than guessing at a threshold that may not have been the one used.
       const word = r.flagged === undefined ? 'tells found'
         : r.flagged ? 'flagged for fixing' : 'seen, under the threshold';
       const tells = r.tells && r.tells.length ? ` - ${word}: ${r.tells.join('; ')}` : '';
-      const coverage = r.truncated ? ', first 256 KB only' : '';
+      const coverage = r.truncated ? ', first 262,144 characters only' : '';
       lines.push(`  ${r.file} - ${verdict(r.score)} (score ${r.score}/${r.band}${coverage})${tells}`);
     }
   }

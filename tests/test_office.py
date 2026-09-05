@@ -54,6 +54,10 @@ def make_xlsx(path, text=SLOP):
         z.writestr("[Content_Types].xml", '<?xml version="1.0"?><Types/>')
         z.writestr("xl/sharedStrings.xml",
                    '<?xml version="1.0"?><sst xmlns="%s">%s</sst>' % (P, items))
+        rows = ''.join('<row><c t="s"><v>%d</v></c></row>' % i
+                       for i, _ in enumerate(_paras(text)))
+        z.writestr("xl/worksheets/sheet1.xml",
+                   '<worksheet xmlns="%s"><sheetData>%s</sheetData></worksheet>' % (P, rows))
     return path
 
 

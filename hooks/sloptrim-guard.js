@@ -5,7 +5,7 @@ process.on('uncaughtException', () => process.exit(0));
 process.on('unhandledRejection', () => process.exit(0));
 const path = require('path');
 const fs = require('fs');
-const { readMode, parseStdin, readTextFile, runDetect, verdict, logDeliverable } = require('./sloptrim-lib');
+const { readMode, parseStdin, readTextFile, runDetectResult, verdict, logDeliverable } = require('./sloptrim-lib');
 
 // ------------------------------------------------------------------------
 // SCOPE: Which files are prose, which are documents, and which are neither.
@@ -32,7 +32,7 @@ const input = parseStdin();
 const sid = input.session_id;
 // NotebookEdit names its target notebook_path, not file_path.
 const ti = input.tool_input || {};
-const filePath = String(ti.file_path || ti.notebook_path || '');
+let filePath = String(ti.file_path || ti.notebook_path || '');
 if (!filePath) {
   // Codex aliases apply_patch to Write for hook matching, but sends the patch in
   // tool_input.command. Re-run this same guard once per resulting file so the
@@ -69,6 +69,7 @@ if (!filePath) {
   process.exit(0);
 }
 
+filePath = path.resolve(typeof input.cwd === 'string' ? input.cwd : process.cwd(), filePath);
 const ext = path.extname(filePath).toLowerCase();
 const base = path.basename(filePath);
 
@@ -104,6 +105,11 @@ if (!PROSE_EXT.has(ext) && !isOffice) {
 // ------------------------------------------------------------------------
 // READ: Plain text is read here; zip-based documents are handed to the detector by path.
 // ------------------------------------------------------------------------
+function failed(reason) {
+  logDeliverable({ t: Date.now(), file: base, kind: 'failed', reason }, sid);
+  process.exit(0);
+}
+
 let text = '';
 try {
   const stat = fs.statSync(filePath);
@@ -116,23 +122,24 @@ try {
   }
   if (!isOffice) text = readTextFile(filePath);
 } catch (e) {
-  process.exit(0);
+  failed('cannot read file');
 }
 
-const out = isOffice
-  ? runDetect('', { timeout: 15000 }, [filePath])
-  : runDetect(text, { timeout: 8000 });
-if (out == null) process.exit(0);
+const detected = isOffice
+  ? runDetectResult('', { timeout: 15000 }, [filePath])
+  : runDetectResult(text, { timeout: 8000 });
+if (!detected.ok) failed(detected.kind === 'no-python' ? 'Python unavailable'
+  : detected.detail === 'ETIMEDOUT' ? 'detector timed out' : 'detector could not read or score this file');
 
 let report;
 try {
-  report = JSON.parse(out);
+  report = JSON.parse(detected.out);
 } catch (e) {
-  process.exit(0);
+  failed('invalid detector report');
 }
-const m = report._metrics || {};
+const m = (report && report._metrics) || {};
 const score = m.ai_tell_score;
-if (typeof score !== 'number') process.exit(0);
+if (typeof score !== 'number') failed('invalid detector score');
 
 // ------------------------------------------------------------------------
 // REPORT: The nudge, in plain language, or silence.
@@ -156,8 +163,8 @@ process.stdout.write(JSON.stringify({
     hookEventName: 'PostToolUse',
     additionalContext:
       `sloptrim: ${base} ${verdict(score)} (score ${score}, band ${m.ai_tell_band}` +
-      // The scan stops at 256 KB, so on a longer file the score covers a prefix.
-      `${m.truncated ? ', first 256 KB only' : ''}). Flagged: ${labels.join('; ')}. ` +
+      // The scan stops at 262,144 characters, so on a longer file the score covers a prefix.
+      `${m.truncated ? ', first 262,144 characters only' : ''}). Flagged: ${labels.join('; ')}. ` +
       'Fix the flagged spans before finishing (max 2 passes, keep rhythm variation).',
   },
 }));
