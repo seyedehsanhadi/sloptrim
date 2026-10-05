@@ -703,6 +703,9 @@ _QUOTE_MARK = re.compile(r"^[ \t]{0,3}>[ \t]?")
 def strip_quoted_spans(text: str) -> str:
     lines = text.split("\n")
     quoted = [bool(_QUOTE_MARK.match(ln)) for ln in lines]
+    # A document that is mostly quotation is the deliverable, not evidence inside one.
+    if 2 * sum(quoted) > sum(1 for ln in lines if ln.strip()):
+        return text
     out = []
     for i, ln in enumerate(lines):
         run = quoted[i]
@@ -1624,7 +1627,7 @@ def _map_latex(text: str, replace) -> str:
     ponytail: this is a bounded lexical view, not a TeX interpreter. Custom
     macros/environments need a real parser if their rendered prose must be read.
     """
-    out, end, limit = [], 0, -1
+    out, end, limit, missed = [], 0, -1, {}
     document = re.search(r"(?m)^[ \t]*\\begin\{document\}", text)
     if document:
         end = document.end()
@@ -1660,11 +1663,12 @@ def _map_latex(text: str, replace) -> str:
                     stop = len(text) if found < 0 else found + 1
         elif token in ("$", "$$", "\\(", "\\["):
             closing = {"\\(": "\\)", "\\[": "\\]"}.get(token, token)
-            # TeX math cannot span a paragraph break, so an unclosed opener hides one paragraph at most.
+            # TeX math cannot span a paragraph break, so an unclosed opener hides only itself.
             if limit < stop:
                 para = _TEX_PARAGRAPH.search(text, stop)
                 limit = para.start() if para else len(text)
-            found = text.find(closing, stop, limit)
+            # A closer missing from this paragraph stays missing for every later opener in it.
+            found = -1 if missed.get(closing) == limit else text.find(closing, stop, limit)
             while found >= 0:
                 back = found
                 while back > stop and text[back - 1] == "\\":
@@ -1672,7 +1676,10 @@ def _map_latex(text: str, replace) -> str:
                 if (found - back) % 2 == 0:
                     break
                 found = text.find(closing, found + len(closing), limit)
-            stop = limit if found < 0 else found + len(closing)
+            if found < 0:
+                missed[closing] = limit
+            else:
+                stop = found + len(closing)
         elif token == "\\end{document}":
             stop = len(text)
         elif token.startswith("\\"):

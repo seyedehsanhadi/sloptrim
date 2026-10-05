@@ -110,7 +110,8 @@ def test_tex_clean_preserves_syntax_math_and_literal_bytes(tmp_path):
 
 def test_tex_unclosed_math_cannot_hide_later_paragraphs():
     for opener in ('$', '$$', r'\(', r'\['):
-        assert '1_ai_vocabulary' in detect.scan('It costs ' + opener + '5 today.\n\n' + SLOP, syntax='latex')
+        for gap in ('\n\n', '\n', ' '):
+            assert '1_ai_vocabulary' in detect.scan('It costs ' + opener + '5 today.' + gap + SLOP, syntax='latex')
     assert '1_ai_vocabulary' not in detect.scan('$x$\n\n$' + SLOP.replace('.', '') + '$', syntax='latex')
 
 

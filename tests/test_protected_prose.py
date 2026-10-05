@@ -18,14 +18,22 @@ SLOP = ("Unlock the full potential of your team and stay ahead of the curve by "
 @pytest.mark.parametrize("mark", ["> ", "   > ", ">> "])
 def test_explicit_quote_does_not_depend_on_line_wrapping(mark):
     words = SLOP.split()
-    one = mark + SLOP
-    wrapped = mark + " ".join(words[:13]) + "\n" + mark + " ".join(words[13:])
+    note = "The client sent this on Monday.\nWe answered it the same day.\n"
+    one = note + mark + SLOP
+    wrapped = note + mark + " ".join(words[:13]) + "\n" + mark + " ".join(words[13:])
     assert detect.scan(one)["_metrics"]["ai_tell_score"] == detect.scan(wrapped)["_metrics"]["ai_tell_score"]
     assert "69_canonical_slop" not in detect.scan(one)
     assert "69_canonical_slop" in detect.scan(SLOP)
     assert "69_canonical_slop" in detect.scan(one + "\n" + SLOP)
-    assert detect.strip_quoted_spans(one).strip() == ""
-    assert detect.strip_quoted_spans(one + "\n" + SLOP).strip() == SLOP
+    assert detect.strip_quoted_spans(one).strip() == note.strip()
+    assert detect.strip_quoted_spans(mark + SLOP + "\n" + SLOP).strip() == SLOP
+
+
+@pytest.mark.parametrize("sep", ["\n", "\n\n"])
+def test_a_document_written_as_blockquotes_is_still_scored(sep):
+    whole = sep.join("> " + s for s in [SLOP] * 6)
+    assert "69_canonical_slop" in detect.scan(whole)
+    assert detect.strip_quoted_spans(whole) == whole
 
 
 # Actual U+200B, U+00A0, and Cyrillic 'a', plus significant literal whitespace.
