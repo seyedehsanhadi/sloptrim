@@ -8,14 +8,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
-- A single-line Markdown blockquote is treated as quoted evidence and kept out of prose scoring. A document that is mostly blockquote is scored, so quoting a whole draft no longer hides it.
-- `--clean` leaves recognized Markdown code untouched: fenced, indented and inline spans keep their exact characters and whitespace.
-- Character checks (invisible characters, non-standard spaces, trailing whitespace, decorative rules, homoglyphs) skip code spans.
-- The saved-file guard and `/sloptrim check` pass the file path to the detector, so `.tex` files get TeX handling.
-- `.tex` files protect common math, comments, preambles, citation keys, verbatim environments and inline listings from prose scoring. An unclosed math opener hides only itself.
-- DOCX paragraphs and runs with an explicit `Code`, `SourceCode`, `CodeBlock`, `CodeChar` or `HTMLPreformatted` style are excluded. Monospace text without one of those styles is still read.
-- `/sloptrim doctor` states that local checks do not prove the host loaded or trusted the hooks.
-- Catalogue examples no longer add facts or certainty absent from their Before text.
+- Code is protected everywhere: Markdown fences, indented blocks and inline spans stay out of scoring, character checks and `--clean`, byte for byte.
+- LaTeX gets its own lexer. Math, comments, preambles, citation keys, `verbatim` and inline listings are skipped; body text and `\textbf{}` contents are still read.
+- Word code is skipped when it carries an explicit code style (`Code`, `SourceCode`, `HTMLPreformatted`, ...). Plain monospace prose is still read.
+- A short quote inside your own text no longer counts against you. A draft written entirely as blockquotes still does.
+- The file guard and `/sloptrim check` pass the real path, so `.tex` files get TeX handling.
+- `/sloptrim doctor` no longer implies the host has loaded the hooks.
+- Catalogue examples stop adding facts their Before text never had.
 
 ## [0.9.3] - 2026-09-05
 
