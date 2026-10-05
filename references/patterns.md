@@ -4,10 +4,10 @@ Companion to `../SKILL.md`. Read the matching section for the precise phrasing l
 
 The catalogue holds 71 patterns. 62 of them have a detector in `scripts/detect.py` and the other 9 need a reading during the rewrite; of the 62, 50 can move the score and 12 are reported as writing advice and count for nothing. A pattern here describes prose, never a writer: see [../ETHICS.md](../ETHICS.md).
 
-Patterns split into two classes:
+These are editing heuristics, not permanent identifiers of AI writing:
 
-- **Era-stable** (everything except §1): structural, syntactic, and rhetorical patterns that persist across model generations.
-- **Era-variable** (§1 AI vocabulary): lexical fingerprints that shift every 12–18 months. See [§1](#1-ai-vocabulary) for the maintained word lists per era.
+- **Structural and rhetorical patterns** can recur across model generations, but their usefulness depends on genre, context, and current evidence.
+- **Vocabulary** also changes with models and usage. There is no fixed refresh interval; revise [§1](#1-ai-vocabulary) when representative evaluations support the change.
 
 ## Lexical tells
 
@@ -27,7 +27,7 @@ published rule, not a frequency claim about any individual word.
 
 **Before:** Additionally, the enduring appeal of Vantry's grey-iron skillets is a testament to the foundry's craftsmanship, showcasing how traditional casting methods continue to integrate seamlessly into the modern culinary landscape.
 
-**After:** Vantry still sells about 40,000 grey-iron skillets a year. The pattern has not changed since 1911, and each cooking face is ground smooth by hand.
+**After:** Vantry's grey-iron skillets remain popular. The foundry still uses traditional casting methods to make cookware for today's kitchens.
 
 ### 2. Model-dialect vocabulary
 
@@ -230,7 +230,7 @@ AI tacks vague future-implication phrases onto otherwise factual sentences.
 
 **Before:** The court ruled against the company in March, raising questions about the future of digital privacy regulation.
 
-**After:** The court ruled against the company in March. The decision is the first to apply the 2023 privacy law to a US-based platform.
+**After:** The court ruled against the company in March.
 
 ### 22. Persuasive authority tropes
 
@@ -544,7 +544,7 @@ A single hedge ("may", "could", "seems") is normal English. AI **stacks** two or
 
 **Before:** The revised screening schedule could potentially reduce late-stage diagnoses somewhat, and might arguably prove relatively cost-effective for most regional clinics.
 
-**After:** The revised screening schedule may cut late-stage diagnoses. In most regional clinics it also costs less to run than the current one.
+**After:** The revised screening schedule may slightly reduce late-stage diagnoses. It might also be reasonably cost-effective for most regional clinics.
 
 ### 55. Contraction absence
 
@@ -600,7 +600,7 @@ AI consistently uses a hyphen (`-`) where typographic convention calls for an en
 
 ### 62. Invisible / zero-width characters
 
-Characters that are invisible when rendered reach a draft from many directions: copy-paste out of a rendered page, paraphrasing tools, editors, and deliberate hidden-text insertion. The rule is written on the character category, so it does not know or care what put a given codepoint there, and it identifies nothing about the source. Anything hidden in these planes is removed along with the debris, because a category rule cannot tell the two apart and is not asked to try. Detection is **driven by the Unicode character database**, not a hand-maintained list: `scripts/detect.py` flags any character whose `General_Category` is `Cf`, `Cc` (except the legitimate `\t` / `\n` / `\r`), `Zl`, or `Zp`, plus every `Default_Ignorable_Code_Point` whose category is not `Cf`, plus the whole `U+E0000`–`U+E0FFF` tag/variation-selector plane. Because it is category-driven it tracks the Unicode version bundled with the runtime rather than a hand-maintained range table. The categories cover, by example:
+Invisible characters can come from copy-paste, editors, paraphrasing tools, or deliberate insertion; their presence does not identify a source. Detection uses Unicode categories (`Cf`, `Cc`, `Zl`, `Zp`), additional ignorable ranges, and context checks. It excludes legitimate `\t`, `\n`, and `\r`, supported functional Unicode, and recognized Markdown code. The category database follows the Python runtime's Unicode version; explicit ranges and context rules still require maintenance. The inspected categories include:
 
 - **Zero-width** — `U+200B` (space), `U+200C` (non-joiner), `U+200D` (joiner), `U+2060` (word joiner), `U+FEFF` (BOM / zero-width no-break space).
 - **Bidi controls** — `U+200E`/`U+200F` (LRM/RLM), `U+202A`–`U+202E` (embeddings/overrides), `U+2066`–`U+2069` (isolates).
@@ -609,11 +609,11 @@ Characters that are invisible when rendered reach a draft from many directions: 
 - **Variation-selector supplement** — `U+E0100`–`U+E01EF`, which can carry hidden text the same way.
 - **Other** — soft hyphen (`U+00AD`), Arabic letter mark (`U+061C`), Mongolian vowel separator (`U+180E`), combining grapheme joiner (`U+034F`), Hangul/Khmer fillers, line/paragraph separators (`U+2028`/`U+2029`), and other C0/C1 control characters. `\t`, `\n`, and `\r` are **not** stripped — they are legitimate layout whitespace (see §68).
 
-To scrub a draft deterministically, run `python scripts/detect.py --clean < draft.txt`. It removes every character in this set, normalizes non-standard spaces (§67), trims stray whitespace (§68), and leaves visible content (letters, digits, punctuation, math symbols, accents, CJK, emoji bases) byte-for-byte intact. Note: a variation selector (`U+FE0F`) following an emoji base is legitimate emoji rendering; since emoji is itself a tell (§57), `--clean` removes it along with the emoji rather than treating it as a hidden character on its own.
+To scrub a draft deterministically, run `python scripts/detect.py --clean < draft.txt`. It removes unintended characters in these categories, normalizes stray spaces (§67), trims stray whitespace (§68), and folds mixed-script lookalikes (§66). Functional Unicode, including supported emoji joiners and variation selectors, is preserved. Recognized Markdown code is excluded from both cleanup and character repair advice. The character rules cannot infer every intended use; preserve exact quotations and meaningful characters even when a heuristic flags them.
 
-**Before:** `Hello​world — the​word count looks fine but the text carries stray control characters.`
+**Before:** The re​port is ready. The invisible character inside the word came from a paste.
 
-**After:** `Hello world` — same visible text, same word count, no stray control characters.
+**After:** The report is ready. The invisible character inside the word came from a paste.
 
 ### 63. Placeholder / Mad-Libs text
 
@@ -687,7 +687,7 @@ A bank of multi-word clichés that are near-absent from genuine human writing, s
 
 **Before:** Unlock the full potential of your team and stay ahead of the curve by embracing a holistic approach that turns challenges into opportunities.
 
-**After:** Give the team the training budget and the two days a month it has asked for. That is what has moved the numbers in the pilot group.
+**After:** Help the team make better use of its abilities.
 
 ### 70. Decorative horizontal rules
 

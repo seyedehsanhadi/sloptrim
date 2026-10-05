@@ -4,6 +4,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.9.4] - 2026-10-05
+
+### Fixed
+
+- A single-line Markdown blockquote is treated as quoted evidence and kept out of prose scoring.
+- `--clean` leaves recognized Markdown code untouched: fenced, indented and inline spans keep their exact characters and whitespace.
+- Character checks (invisible characters, non-standard spaces, trailing whitespace, decorative rules, homoglyphs) skip code spans.
+- The saved-file guard and `/sloptrim check` pass the file path to the detector, so `.tex` files get TeX handling.
+- `.tex` files protect common math, comments, preambles, citation keys, verbatim environments and inline listings from prose scoring. An unclosed math opener hides one paragraph at most.
+- DOCX paragraphs and runs with an explicit `Code`, `SourceCode`, `CodeBlock`, `CodeChar` or `HTMLPreformatted` style are excluded. Monospace text without one of those styles is still read.
+- `/sloptrim doctor` states that local checks do not prove the host loaded or trusted the hooks.
+- Catalogue examples no longer add facts or certainty absent from their Before text.
+
 ## [0.9.3] - 2026-09-05
 
 ### Fixed
@@ -93,6 +106,7 @@ First public release. Pre-1.0 interfaces and score calibration may still change.
 - English prose is the supported scope. PDF and RTF are logged but not read, and
   files written through shell commands do not pass saved-file hooks.
 
+[0.9.4]: https://github.com/seyedehsanhadi/sloptrim/releases/tag/v0.9.4
 [0.9.3]: https://github.com/seyedehsanhadi/sloptrim/releases/tag/v0.9.3
 [0.9.2]: https://github.com/seyedehsanhadi/sloptrim/releases/tag/v0.9.2
 [0.9.1]: https://github.com/seyedehsanhadi/sloptrim/releases/tag/v0.9.1

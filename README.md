@@ -13,10 +13,10 @@ spans to be fixed. Plain text is accepted up to 512 KB, supported archives up to
 Python standard library only, no network, no model. Prose only, never code.
 
 [![test](https://github.com/seyedehsanhadi/sloptrim/actions/workflows/test.yml/badge.svg)](https://github.com/seyedehsanhadi/sloptrim/actions/workflows/test.yml)
-[![Version](https://img.shields.io/badge/version-0.9.3-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.9.4-blue)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE.txt)
 [![Dependencies](https://img.shields.io/badge/dependencies-none-blue)](scripts/detect.py)
-[![Tests](https://img.shields.io/badge/tests-214-blue)](tests/)
+[![Tests](https://img.shields.io/badge/tests-267-blue)](tests/)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](scripts/detect.py)
 
 [Install](#install) &middot; [What it does](#what-it-does) &middot; [Measured](#measured) &middot; [Limits](#what-it-cannot-do) &middot; [Patterns](references/patterns.md) &middot; [Ethics](ETHICS.md)
@@ -45,7 +45,9 @@ Paste into Claude Code, Codex, Cursor, or any coding agent:
 Install the sloptrim plugin from https://github.com/seyedehsanhadi/sloptrim
 ```
 
-Restart, then run `/sloptrim doctor`. It answers with four `[OK]` lines.
+Restart, then run `/sloptrim doctor`. It answers with four `[OK]` lines. They test
+the local install, not whether the host delivers hook events, so save a prose file
+and look for its entry in `/sloptrim show`.
 
 <details>
 <summary>Explicit commands, and installing without the marketplace</summary>
@@ -83,7 +85,7 @@ because they are typographic habits.
 | Formats | 20, including `.docx`, `.pptx`, `.xlsx`, OpenDocument, `.epub`, `.ipynb`, LaTeX; the first 262,144 characters of extracted prose is scored |
 | Runs in | Claude Code, on save. Other agents via `/sloptrim init`, which writes the contract to `AGENTS.md`, and `.cursor/rules/` |
 | Needs | Node for the hooks, Python 3.9 or newer for the detector, nothing else |
-| Suite | 142 Python tests and 72 hook checks, with CI configured for Linux, Windows and macOS, against Python 3.9 and 3.13 (macOS on 3.13) |
+| Suite | 195 Python tests and 72 hook checks, with CI configured for Linux, Windows and macOS, against Python 3.9 and 3.13 (macOS on 3.13) |
 | Does not see | A file written by a `Bash` command, which reaches disk without passing `Write` or `Edit` |
 
 | Command | Effect |
@@ -134,6 +136,24 @@ python scripts/benchmark_frontier.py PATH_TO_HUMAN_DETECTORS_JSON
 ```
 
 ## What it cannot do
+
+**Format support means reading selected text, not rebuilding every document.**
+DOCX/DOCM read main-body paragraphs and tables, excluding headers, footers and
+comments. Explicit code styles (`Code`, `SourceCode`, `CodeBlock`, `CodeChar`,
+`HTMLPreformatted`) are excluded; inherited styles and unmarked code are not
+resolved. Monospace fonts alone do not imply code. PPTX/PPTM read slide text,
+excluding speaker notes. XLSX/XLSM read cell
+text; OpenDocument reads `content.xml`; EPUB reads HTML/XHTML members; notebooks
+read Markdown cells only. Embedded images/OCR are unsupported. PDF and RTF are
+recorded as unreadable rather than scored. Plain formats use Markdown-style code
+masking; `.tex` paths additionally protect common math, comments, literal-code
+environments, citations and preambles. This is a lexical check: it does not expand
+custom macros, resolve includes, or parse every MDX/RST/Org/AsciiDoc construct.
+
+`--clean` prints text. It must never be redirected over an Office archive, EPUB
+or notebook. Use a format-aware editor for prose revisions and validate the saved
+document. Pass a `.tex` filename to preserve its syntax context; stdin is treated
+as Markdown/plain prose.
 
 **It cannot prove whether a model wrote something.** The public arms show that the
 score often ranks these machine samples above matched human samples. The threshold

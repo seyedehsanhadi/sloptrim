@@ -705,7 +705,7 @@ def strip_quoted_spans(text: str) -> str:
     quoted = [bool(_QUOTE_MARK.match(ln)) for ln in lines]
     out = []
     for i, ln in enumerate(lines):
-        run = quoted[i] and ((i and quoted[i - 1]) or (i + 1 < len(quoted) and quoted[i + 1]))
+        run = quoted[i]
         out.append(" " * len(ln) if run else ln)
     return "\n".join(out)
 
@@ -1168,7 +1168,19 @@ def _space_holds(ch: str, prev: str, nxt: str) -> bool:
     return nxt in _FRENCH_AFTER or prev in _FRENCH_BEFORE
 
 
-def clean_text(text: str) -> str:
+def clean_text(text: str, syntax: str = "markdown") -> str:
+    # Hide the same code spans the prose detector skips. Tokens must be absent
+    # from the input, and restoration happens only after every cleanup pass.
+    code = []
+    prefix = "SLOPTRIMCODE"
+    while prefix in text:
+        prefix += "X"
+
+    def protect(span):
+        code.append(span)
+        return f"|{prefix}{len(code) - 1}END|"
+
+    text = (_map_latex if syntax == "latex" else _map_code)(text, protect)
     out: list = []
     rtl_doc = _has_rtl(text)
     n = len(text)
@@ -1203,7 +1215,9 @@ def clean_text(text: str) -> str:
     # Blank leading lines go; the first line's own indentation stays, because
     # four spaces in Markdown is a code block, not stray whitespace.
     cleaned = re.sub(r"\A(?:[ \t]*\r?\n)+", "", cleaned)
-    return cleaned.rstrip(" \t\r\n")
+    cleaned = cleaned.rstrip(" \t\r\n")
+    return re.sub(r"\|" + re.escape(prefix) + r"(\d+)END\|",
+                  lambda m: code[int(m[1])], cleaned)
 
 
 def detect_trailing_whitespace(text: str) -> dict:
@@ -1541,7 +1555,8 @@ def strip_markdown_furniture(text: str) -> str:
 
 
 # ----------------------------------------------------------- pre-scan cleanup
-def strip_code(text: str) -> str:
+def _map_code(text: str, replace) -> str:
+    """Apply one replacement to each recognized Markdown code span."""
     out = []
     fence = None
     indented = False
@@ -1549,22 +1564,133 @@ def strip_code(text: str) -> str:
     for line in text.split("\n"):
         m = _FENCE_OPEN.match(line)
         if fence is not None:
-            out.append(" " * len(line))
+            out.append(replace(line))
             if m and m[1][0] == fence[0] and len(m[1]) >= len(fence) and not m[2].strip():
                 fence = None
         elif m and (m[1][0] != '`' or '`' not in m[2]):
             fence = m.group(1)
-            out.append(" " * len(line))
-        elif (blank_before or indented) and line.startswith(('    ', '\t')):
+            out.append(replace(line))
+        elif ((blank_before or indented) and line.startswith(('    ', '\t'))
+              or indented and not line.strip()):
             indented = True
-            out.append(" " * len(line))
+            out.append(replace(line))
         else:
             if line.strip():
                 indented = False
             out.append(line)
         blank_before = not line.strip()
     blanked = "\n".join(out)
-    return _INLINE_CODE.sub(lambda m: " " * len(m.group(0)), blanked)
+    return _INLINE_CODE.sub(lambda m: replace(m.group(0)), blanked)
+
+
+def strip_code(text: str) -> str:
+    return _map_code(text, lambda span: " " * len(span))
+
+
+_TEX_TOKEN = re.compile(r"%[^\n]*|\\(?:begin|end)\{[^{}]*\}|"
+                        r"\\verb\*?[^A-Za-z\s]|\\[A-Za-z@]+\*?|\\[^A-Za-z]|\$\$?")
+_TEX_PARAGRAPH = re.compile(r"\n[ \t]*\n")
+_TEX_LITERAL_ENVS = {"verbatim", "verbatim*", "Verbatim", "lstlisting", "minted",
+                     "equation", "equation*", "align", "align*", "alignat", "alignat*",
+                     "gather", "gather*", "multline", "multline*", "displaymath", "math",
+                     "eqnarray", "eqnarray*", "tikzpicture"}
+_TEX_ARGUMENTS = {"cite", "citep", "citet", "citeauthor", "citeyear", "parencite",
+                  "textcite", "autocite", "label", "ref", "eqref", "pageref", "url",
+                  "href", "includegraphics", "input", "include", "bibliography",
+                  "bibliographystyle", "addbibresource"}
+
+
+def _tex_group_end(text: str, start: int) -> int:
+    opening = text[start]
+    closing = "}" if opening == "{" else "]"
+    depth, i = 1, start + 1
+    while i < len(text):
+        if text[i] == "\\":
+            i += 2
+            continue
+        if text[i] == opening:
+            depth += 1
+        elif text[i] == closing:
+            depth -= 1
+            if not depth:
+                return i + 1
+        i += 1
+    return len(text)
+
+
+def _map_latex(text: str, replace) -> str:
+    """Protect common TeX syntax without executing macros or reading includes.
+
+    ponytail: this is a bounded lexical view, not a TeX interpreter. Custom
+    macros/environments need a real parser if their rendered prose must be read.
+    """
+    out, end, limit = [], 0, -1
+    document = re.search(r"(?m)^[ \t]*\\begin\{document\}", text)
+    if document:
+        end = document.end()
+        out.append(replace(text[:end]))
+    for m in _TEX_TOKEN.finditer(text):
+        if m.start() < end:
+            continue
+        token, stop = m[0], m.end()
+        if token.startswith("\\begin{") and token[7:-1] in _TEX_LITERAL_ENVS:
+            closing = "\\end{" + token[7:-1] + "}"
+            found = text.find(closing, stop)
+            stop = len(text) if found < 0 else found + len(closing)
+        elif re.fullmatch(r"\\verb\*?[^A-Za-z\s]", token):
+            found = text.find(token[-1], stop)
+            stop = len(text) if found < 0 else found + 1
+        elif token in ("\\lstinline", "\\lstinline*", "\\mintinline"):
+            while stop < len(text) and text[stop].isspace():
+                stop += 1
+            if stop < len(text) and text[stop] == "[":
+                stop = _tex_group_end(text, stop)
+            if token == "\\mintinline":
+                while stop < len(text) and text[stop].isspace():
+                    stop += 1
+                if stop < len(text) and text[stop] == "{":
+                    stop = _tex_group_end(text, stop)
+            while stop < len(text) and text[stop].isspace():
+                stop += 1
+            if stop < len(text):
+                if text[stop] == "{":
+                    stop = _tex_group_end(text, stop)
+                else:
+                    found = text.find(text[stop], stop + 1)
+                    stop = len(text) if found < 0 else found + 1
+        elif token in ("$", "$$", "\\(", "\\["):
+            closing = {"\\(": "\\)", "\\[": "\\]"}.get(token, token)
+            # TeX math cannot span a paragraph break, so an unclosed opener hides one paragraph at most.
+            if limit < stop:
+                para = _TEX_PARAGRAPH.search(text, stop)
+                limit = para.start() if para else len(text)
+            found = text.find(closing, stop, limit)
+            while found >= 0:
+                back = found
+                while back > stop and text[back - 1] == "\\":
+                    back -= 1
+                if (found - back) % 2 == 0:
+                    break
+                found = text.find(closing, found + len(closing), limit)
+            stop = limit if found < 0 else found + len(closing)
+        elif token == "\\end{document}":
+            stop = len(text)
+        elif token.startswith("\\"):
+            command = token[1:].rstrip("*")
+            groups = 2 if command in {"newcommand", "renewcommand", "providecommand", "DeclareRobustCommand"} else 1 if command in _TEX_ARGUMENTS else 0
+            while groups:
+                start = stop
+                while start < len(text) and text[start].isspace():
+                    start += 1
+                if start >= len(text) or text[start] not in "[{":
+                    break
+                stop = _tex_group_end(text, start)
+                if text[start] == "{":
+                    groups -= 1
+        out.extend((text[end:m.start()], replace(text[m.start():stop])))
+        end = stop
+    out.append(text[end:])
+    return "".join(out)
 
 
 _SCAN_CAP = 262144
@@ -1578,12 +1704,19 @@ def _reading_order(name: str) -> tuple:
 
 
 # ------------------------------------------------------------------ main scan
-def scan(raw_text: str) -> dict:
+def scan(raw_text: str, syntax: str = "markdown") -> dict:
     result: dict = {}
     # One window for every layer.
     capped = raw_text[:_SCAN_CAP]
+    # Non-whitespace markers avoid turning hidden code into stray whitespace.
+    # Keep line boundaries, but exclude code from character repair advice too.
+    mapper = _map_latex if syntax == "latex" else _map_code
+    prose_chars = mapper(capped, lambda span: "|CODE|")
+    prose = mapper(capped, lambda span: re.sub(r"[^\n]", " ", span))
+    if syntax == "latex":
+        prose = re.sub(r"[{}]", " ", prose)
     text, evasion_defused = defuse_evasion(
-        strip_markdown_furniture(strip_quoted_spans(strip_code(raw_text[:_SCAN_CAP])))
+        strip_markdown_furniture(strip_quoted_spans(prose))
     )
 
     simple = [
@@ -1735,7 +1868,7 @@ def scan(raw_text: str) -> dict:
             "samples": stacked[:MAX_SAMPLES],
         }
 
-    invisible = detect_invisible_chars(capped)
+    invisible = detect_invisible_chars(prose_chars)
     if invisible["count"]:
         result["62_invisible_chars"] = {
             "label": "Invisible / zero-width characters (strip)",
@@ -1743,7 +1876,7 @@ def scan(raw_text: str) -> dict:
             "samples": _labelled_samples(invisible["chars"]),
         }
 
-    nbsp = detect_nonstandard_spaces(capped)
+    nbsp = detect_nonstandard_spaces(prose_chars)
     if nbsp["count"]:
         result["67_nonstandard_spaces"] = {
             "label": "Non-standard spaces (normalize to U+0020)",
@@ -1751,7 +1884,7 @@ def scan(raw_text: str) -> dict:
             "samples": _labelled_samples(nbsp["chars"]),
         }
 
-    trailing = detect_trailing_whitespace(capped)
+    trailing = detect_trailing_whitespace(prose_chars)
     if trailing["artifact"]:
         tsamples: list[str] = []
         if trailing["leading_whitespace"]:
@@ -1768,7 +1901,7 @@ def scan(raw_text: str) -> dict:
             "samples": tsamples,
         }
 
-    rules = detect_decorative_rules(capped)
+    rules = detect_decorative_rules(prose_chars)
     if rules:
         result["70_decorative_rules"] = {
             "label": "Decorative horizontal rules",
@@ -1826,7 +1959,7 @@ def scan(raw_text: str) -> dict:
             ],
         }
 
-    homoglyphs = detect_homoglyphs(capped)
+    homoglyphs = detect_homoglyphs(prose_chars)
     if homoglyphs:
         result["66_homoglyphs"] = {
             "label": "Homoglyph / mixed-script confusables (fold to ASCII)",
@@ -2051,6 +2184,21 @@ def extract_office_text(path: str) -> str:
             except KeyError:
                 continue
             buf: list = []
+            if ext in {".docx", ".docm"}:
+                # ponytail: explicit code styles only; no Word style-cascade
+                # interpreter. Untagged code still needs editorial judgment.
+                w = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+                code_styles = {"code", "sourcecode", "codeblock", "codechar", "htmlpreformatted"}
+                for el in root.iter():
+                    if el.tag not in {w + "p", w + "r"}:
+                        continue
+                    props = el.find(w + ("pPr" if el.tag == w + "p" else "rPr"))
+                    if props is None:
+                        continue
+                    style = props.find(w + ("pStyle" if el.tag == w + "p" else "rStyle"))
+                    if style is not None and re.sub(r"\s+", "", style.get(w + "val", "")).lower() in code_styles:
+                        for t in el.iter(w + "t"):
+                            t.text = " "
             if epub:
                 _epub_text(root, buf)
             elif spreadsheet:
@@ -2263,16 +2411,18 @@ def main() -> int:
     if not text.strip():
         print(json.dumps({"error": "empty input"}), file=sys.stderr)
         return 1
+    syntax = "latex" if paths and os.path.splitext(paths[0])[1].lower() == ".tex" else "markdown"
     if "--clean" in flags:
-        cleaned = clean_text(text)
+        cleaned = clean_text(text, syntax=syntax)
         # A file that ended in a newline still should.
-        if text.endswith("\n"):
+        if text.endswith("\n") and not cleaned.endswith("\n"):
             cleaned += "\n"
         sys.stdout.write(cleaned.replace("\n", newline) if newline != "\n" else cleaned)
         return 0
-    result = scan(text)
+    result = scan(text, syntax=syntax)
     if "--ci" in flags:
-        result["_metrics"].update(score_interval(text))
+        interval_text = _map_latex(text, lambda span: " ") if syntax == "latex" else text
+        result["_metrics"].update(score_interval(interval_text))
     print(json.dumps(result, indent=2, ensure_ascii=False))
     return 0
 

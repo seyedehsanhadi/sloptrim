@@ -5,7 +5,7 @@ process.on('uncaughtException', () => process.exit(0));
 process.on('unhandledRejection', () => process.exit(0));
 const path = require('path');
 const fs = require('fs');
-const { readMode, parseStdin, readTextFile, runDetectResult, verdict, logDeliverable } = require('./sloptrim-lib');
+const { readMode, parseStdin, runDetectResult, verdict, logDeliverable } = require('./sloptrim-lib');
 
 // ------------------------------------------------------------------------
 // SCOPE: Which files are prose, which are documents, and which are neither.
@@ -22,7 +22,7 @@ const BINARY_PROSE = new Set(['.pdf', '.rtf']);
 // detector is handed the path and pulls out only the markdown.
 const NOTEBOOK_EXT = new Set(['.ipynb']);
 
-module.exports = { OFFICE_EXT, NOTEBOOK_EXT, BINARY_PROSE };
+module.exports = { PROSE_EXT, OFFICE_EXT, NOTEBOOK_EXT, BINARY_PROSE };
 if (require.main !== module) return;
 
 const mode = readMode();
@@ -110,7 +110,6 @@ function failed(reason) {
   process.exit(0);
 }
 
-let text = '';
 try {
   const stat = fs.statSync(filePath);
   if (!stat.isFile()) process.exit(0);
@@ -120,14 +119,12 @@ try {
                      reason: 'size', size: stat.size, limit }, sid);
     process.exit(0);
   }
-  if (!isOffice) text = readTextFile(filePath);
 } catch (e) {
   failed('cannot read file');
 }
 
-const detected = isOffice
-  ? runDetectResult('', { timeout: 15000 }, [filePath])
-  : runDetectResult(text, { timeout: 8000 });
+// Keep the extension: TeX needs syntax-aware scoring, including through hooks.
+const detected = runDetectResult('', { timeout: isOffice ? 15000 : 8000 }, [filePath]);
 if (!detected.ok) failed(detected.kind === 'no-python' ? 'Python unavailable'
   : detected.detail === 'ETIMEDOUT' ? 'detector timed out' : 'detector could not read or score this file');
 

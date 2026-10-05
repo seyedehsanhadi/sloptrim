@@ -6,7 +6,7 @@ process.on('unhandledRejection', () => process.exit(0));
 const { execFileSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
-const { readMode, writeMode, parseStdin, readTextFile, LEVELS, readLedger, verdict, runDetectResult, contract, ROOT } = require('./sloptrim-lib');
+const { readMode, writeMode, parseStdin, LEVELS, readLedger, verdict, runDetectResult, contract, ROOT } = require('./sloptrim-lib');
 const { OFFICE_EXT, NOTEBOOK_EXT, BINARY_PROSE } = require('./sloptrim-guard');
 
 function help() {
@@ -34,20 +34,16 @@ function check(fileArg) {
   const p = path.resolve(fileArg);
   const ext = path.extname(p).toLowerCase();
   const isOffice = OFFICE_EXT.has(ext) || NOTEBOOK_EXT.has(ext);
-  let text = '';
   try {
     const st = fs.statSync(p);
     if (!st.isFile()) return `sloptrim check: not a file: ${fileArg}`;
     if (BINARY_PROSE.has(ext)) return `sloptrim check: no readable text in ${path.basename(p)}`;
     const cap = isOffice ? 4 * 1024 * 1024 : 512 * 1024;
     if (st.size > cap) return `sloptrim check: file over ${cap / 1024} KB`;
-    if (!isOffice) text = readTextFile(p);
   } catch (e) {
     return `sloptrim check: cannot read ${fileArg}`;
   }
-  const res = isOffice
-    ? runDetectResult('', { timeout: 15000 }, [p])
-    : runDetectResult(text, { timeout: 15000 });
+  const res = runDetectResult('', { timeout: 15000 }, [p]);
   if (!res.ok) {
     if (res.kind === 'no-python') return 'sloptrim check: detector unavailable (needs python on PATH)';
     if (res.kind === 'no-output') return `sloptrim check: detector produced no report for ${path.basename(p)}`;
@@ -105,7 +101,7 @@ function doctor() {
     : mode === 'off'
       ? `Nothing is wrong. It is switched off, so saved files are not scored. ${SELF} on turns it back on.`
       : scoreOk
-        ? `All good. It is on: prose files are accepted within the 512 KB plain-text and 4 MB archive limits; the detector scores the first 262,144 characters of extracted prose, and ${SELF} show identifies partial or skipped checks.`
+        ? `Local checks passed. This does not prove the host loads or trusts these hooks. Save a prose file and inspect ${SELF} show. Limits: 512 KB plain text, 4 MB archives, first 262,144 characters scored.`
         : `The install is sound but no file has been scored yet. Save a prose file, then ${SELF} show.`);
   return lines.join('\n');
 }

@@ -236,7 +236,7 @@ echo "$again" | grep -q "sloptrim is installed and on"; [ $? -ne 0 ]; check "sec
 echo "$again" | grep -q "SLOPTRIM ACTIVE - level: full"; check "second session: the contract still arrives" $?
 out="$(echo '{"prompt":"/sloptrim doctor"}' | CLAUDE_CONFIG_DIR="$FRESH" node "$REPO/hooks/sloptrim-tracker.js")"
 echo "$out" | grep -q "python runs the detector"; check "fresh install: doctor reports detector health" $?
-echo "$out" | grep -q "All good"; check "fresh install: doctor gives the all-clear" $?
+echo "$out" | grep -q "does not prove the host loads or trusts"; check "fresh install: doctor distinguishes local health from hook activation" $?
 
 node "$REPO/tests/interp.js" >/dev/null 2>&1
 check "a failing first python falls through to the next launcher" $?
