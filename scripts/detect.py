@@ -351,6 +351,20 @@ _RTL = ((0x0590, 0x08FF), (0xFB1D, 0xFDFF), (0xFE70, 0xFEFF),
 _MONGOLIAN = ((0x1800, 0x18AF),)
 _KHMER = ((0x1780, 0x17FF),)
 _CJK = ((0x3400, 0x4DBF), (0x4E00, 0x9FFF), (0xF900, 0xFAFF), (0x20000, 0x2FA1F))
+_CJK_TEXT = re.compile("[%s]" % "".join("\\U%08x-\\U%08x" % (a, b) for a, b in _CJK))
+# Chinese writes sentences with these instead of `.`/`!`/`?`. Without them a
+# 1500-character article splits into one sentence, every structural detector
+# below goes unmeasured, and the layer reports nothing rather than reporting
+# that it measured nothing.
+_CJK_STOPS = "\u3002\uff01\uff1f\u2026"
+# Characters that close a sentence's quotation or aside. Kept with the sentence
+# they close, in both scripts.
+_CLOSERS = "\u201d\u2019\u300d\u300f\u3011\u3015\uff09\uff3d\"')]\u00bb"
+# Chinese carries an English word's worth of meaning in about 1.6 characters.
+# Measured: any divisor from 1.0 to 3.0 moved the slop/human separation the same
+# small amount, so this only has to land in the right order of magnitude — it
+# exists to put Chinese text above the scoring floor at all.
+_CJK_CHARS_PER_WORD = 1.6
 # Scripts where a joiner or non-joiner changes how a word is written.
 _JOINING = ((0x0590, 0x08FF), (0x0900, 0x0DFF), (0xFB1D, 0xFDFF), (0xFE70, 0xFEFF),
             (0x1000, 0x109F), (0x1780, 0x17FF))
@@ -747,7 +761,71 @@ ABBREV = {
 
 
 # ------------------------------------------------------------- text structure
+def _split_cjk_sentences(text: str) -> list[str]:
+    """Split prose that contains Chinese on both Chinese and Latin terminators.
+
+    The English splitter below only breaks on `.!?`, none of which Chinese uses,
+    so a measured document of 1548 characters came back as one sentence.
+    Everything downstream that needs at least three sentences to say anything
+    (burstiness, cadence) then reported `None`, and `None` scores zero — the same
+    zero a genuinely clean document gets. Splitting here is what turns
+    "unmeasured" into a real number.
+
+    Chinese technical prose routinely carries whole English sentences, so Latin
+    terminators still break here, under the same rules as below: a period inside
+    a number or after an abbreviation is not a break. Runs of stops ("？！",
+    "……") and the closing quote or bracket after them stay with the sentence that
+    owns them, because splitting mid-quotation leaves fragments no detector was
+    written to read.
+    """
+    out: list[str] = []
+    buf = ""
+    i = 0
+    n = len(text)
+    while i < n:
+        ch = text[i]
+        buf += ch
+        i += 1
+        if ch in _CJK_STOPS:
+            while i < n and text[i] in _CJK_STOPS:
+                buf += text[i]
+                i += 1
+        elif ch in ".!?":
+            # A period between digits is a decimal, not a break: "3.5 版本".
+            if ch == "." and 0 < i - 1 and text[i - 2].isdigit() and i < n and text[i].isdigit():
+                continue
+            while i < n and text[i] in ".!?":
+                buf += text[i]
+                i += 1
+            tail = buf.rstrip(".!?").split()
+            if tail:
+                base = re.sub(r"[^\w.]", "", tail[-1]).rstrip(".").lower()
+                if (base + ".") in ABBREV or re.fullmatch(r"[a-z]", base):
+                    buf += " "
+                    continue
+        else:
+            continue
+        body = buf.strip().strip(_CJK_STOPS + ".!?").strip()
+        if not body:
+            # Nothing but stops so far: they belong to the sentence before.
+            if out:
+                out[-1] += buf.strip()
+            buf = ""
+            continue
+        # A closing quote or bracket belongs to the sentence it closes.
+        while i < n and text[i] in _CLOSERS:
+            buf += text[i]
+            i += 1
+        out.append(buf.strip())
+        buf = ""
+    if buf.strip():
+        out.append(buf.strip())
+    return [s for s in out if s]
+
+
 def split_sentences(text: str) -> list[str]:
+    if _CJK_TEXT.search(text):
+        return _split_cjk_sentences(text)
     placeholder = ""
     text = text.replace(placeholder, "")
     protected = re.sub(r"(\d)\.(\d)", rf"\1{placeholder}\2", text)
@@ -781,7 +859,20 @@ def split_sentences(text: str) -> list[str]:
 
 
 def count_words(s: str) -> int:
-    return len(re.findall(r"\b[\w'-]+\b", s))
+    r"""Count words, treating CJK as words-per-character rather than per-token.
+
+    `\w` matches CJK, and `\b` never fires between two CJK characters, so a run
+    of Chinese counted as a single word: `\b[\w'-]+\b` on 143 characters of
+    Chinese returns 13. Those 13 words sat below `_SCORE_MIN_WORDS`, every
+    Chinese document therefore scored `clean` with confidence `none`, and the
+    tool's own advice ("treat any number here as noise") was the only honest
+    thing about the output.
+    """
+    cjk = len(_CJK_TEXT.findall(s))
+    if not cjk:
+        return len(re.findall(r"\b[\w'-]+\b", s))
+    latin = len(re.findall(r"\b[\w'-]+\b", _CJK_TEXT.sub(" ", s)))
+    return latin + int(round(cjk / _CJK_CHARS_PER_WORD))
 
 
 def first_two_words(s: str) -> str:
