@@ -2,13 +2,17 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.9.7] - 2026-11-10
 
 ### Fixed
 
 - A lone zero-width character or a bare `xxx` no longer lifts a document to 45. A zero-width space often rides along when text is copied from a web page, and `xxx` is how people redact a name. Invisible characters now count as decisive evidence from three up, and `xxx` counts only beside a real template slot. One of them still adds its ordinary points, is still reported and is still removed by `--clean`. Other markers, such as `[Your Name]`, an AI tracking link or a chatbot citation token, behave as before.
 - Double spaces, tabs and non-breaking spaces between words no longer hide phrase patterns. They fold to one space before matching, and the character layer still reports them.
 - An all-caps bracket counts as a template slot only when it names one, such as `[COMPANY]`, `[YOUR NAME]` or `[XX]`. Citation keys and labels such as `[RFC2119]`, `[UNICODE]` and `[USEPA]` were read as slots before, and each one lifted its document to 45. Of 250 human-written RFCs, 189 were flagged at the default threshold; 2 are now. Mixed-case slots such as `[Your Name]` are unchanged.
+
+### Changed
+
+- The README has a cost section. The contract was measured as billed input tokens with the plugin off against on: about 1,400 at session start in `full`, 1,415 in `strict` and 1,120 in `lite`. A subagent receives the same text, so it costs the same. The README said about 1,100 and 900 before.
 
 ## [0.9.6] - 2026-10-22
 
@@ -130,6 +134,7 @@ First public release. Pre-1.0 interfaces and score calibration may still change.
 - English prose is the supported scope. PDF and RTF are logged but not read, and
   files written through shell commands do not pass saved-file hooks.
 
+[0.9.7]: https://github.com/seyedehsanhadi/sloptrim/releases/tag/v0.9.7
 [0.9.6]: https://github.com/seyedehsanhadi/sloptrim/releases/tag/v0.9.6
 [0.9.5]: https://github.com/seyedehsanhadi/sloptrim/releases/tag/v0.9.5
 [0.9.4]: https://github.com/seyedehsanhadi/sloptrim/releases/tag/v0.9.4

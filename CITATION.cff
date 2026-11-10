@@ -7,8 +7,8 @@ authors:
     given-names: Seyed Ehsan
 repository-code: "https://github.com/seyedehsanhadi/sloptrim"
 license: Apache-2.0
-version: 0.9.6
-date-released: "2026-10-22"
+version: 0.9.7
+date-released: "2026-11-10"
 keywords:
   - writing quality
   - text analysis

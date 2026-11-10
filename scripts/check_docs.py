@@ -105,7 +105,7 @@ MARKET = json.loads((REPO / ".claude-plugin" / "marketplace.json").read_text(enc
 PATTERNS = (REPO / "references" / "patterns.md").read_text(encoding="utf-8")
 
 VERSION = PLUGIN["version"]
-PUBLIC_RELEASE_VERSION = "0.9.6"
+PUBLIC_RELEASE_VERSION = "0.9.7"
 
 HEADINGS = re.findall(r"^### (\d+)\. ", PATTERNS, re.M)
 CATALOGUE = len(re.findall(r"^### ", PATTERNS, re.M))

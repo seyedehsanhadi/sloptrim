@@ -13,13 +13,13 @@ spans to be fixed. Plain text is accepted up to 512 KB, supported archives up to
 Python standard library only, no network, no model. Prose only, never code.
 
 [![test](https://github.com/seyedehsanhadi/sloptrim/actions/workflows/test.yml/badge.svg)](https://github.com/seyedehsanhadi/sloptrim/actions/workflows/test.yml)
-[![Version](https://img.shields.io/badge/version-0.9.6-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.9.7-blue)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE.txt)
 [![Dependencies](https://img.shields.io/badge/dependencies-none-blue)](scripts/detect.py)
 [![Tests](https://img.shields.io/badge/tests-305-blue)](tests/)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](scripts/detect.py)
 
-[Install](#install) &middot; [What it does](#what-it-does) &middot; [Measured](#measured) &middot; [Limits](#what-it-cannot-do) &middot; [Patterns](references/patterns.md) &middot; [Ethics](ETHICS.md)
+[Install](#install) &middot; [What it does](#what-it-does) &middot; [Measured](#measured) &middot; [Cost](#what-it-costs) &middot; [Limits](#what-it-cannot-do) &middot; [Patterns](references/patterns.md) &middot; [Ethics](ETHICS.md)
 
 </div>
 
@@ -97,7 +97,7 @@ because they are typographic habits.
 | `/sloptrim init` | Write the contract to `./AGENTS.md` and a Cursor rule to `./.cursor/rules/` |
 | `/sloptrim doctor` | Diagnose the install |
 
-For one run only, set `SLOPTRIM_MODE` to `off`, `lite`, `full` or `strict`. It beats the saved level and is never written back, so a headless code job can run `SLOPTRIM_MODE=off claude -p ...` without paying for the prose contract (about 1,100 tokens at session start and 900 per subagent).
+For one run only, set `SLOPTRIM_MODE` to `off`, `lite`, `full` or `strict`. It beats the saved level and is never written back, so a headless code job can run `SLOPTRIM_MODE=off claude -p ...` without paying for the prose contract (about 1,400 tokens at session start and the same for each subagent).
 
 ```bash
 python scripts/detect.py draft.docx    # JSON: patterns, metrics, 0-100 score
@@ -136,6 +136,58 @@ git clone https://github.com/jenna-russell/human_detectors.git
 git -C human_detectors checkout afcf03d14d2da4a038d8d0fafa5ec779dd858181
 python scripts/benchmark_frontier.py PATH_TO_HUMAN_DETECTORS_JSON
 ```
+
+## What it costs
+
+Sloptrim charges nothing itself. Its hooks add text to the model's context, and the
+provider bills that text again on every model call for as long as it stays there.
+The first two rows below are billed input tokens measured on Claude Haiku, with the
+plugin off against on. The prompt and save rows are scaled from character counts at
+the same ratio. Other models count the same text a little differently.
+
+| Event | off | lite | full | strict |
+|---|---:|---:|---:|---:|
+| Session start or resume | 0 | 1,120 | 1,400 | 1,415 |
+| Each subagent | 0 | 1,120 | 1,400 | 1,415 |
+| Each prompt | 0 | 40 | 40 | 40 |
+| Saving prose that is flagged | 0 | 0 | 95 | 95 |
+| Saving clean prose, code or config | 0 | 0 | 0 | 0 |
+
+```text
+tokens = calls x (contract + 20 x prompts + 50 x flagged saves)
+       + subagent calls x contract
+cost   = tokens / 1,000,000 x your cache-read price
+```
+
+A session of 100 model calls in `full` re-reads about 140,000 tokens for the contract.
+
+<img src="assets/cost.svg" width="756" alt="Extra context tokens by number of model calls: full and strict add about 1,400 per call, lite about 1,120, off none.">
+
+That figure is the floor. These cases move it:
+
+- **Compaction, automatic or by `/compact`.** The session-start hook fires again and
+  the contract is injected again. The earlier copy is summarised away with the rest of
+  the history, so the rate per call does not double; the new copy is billed once at
+  the cache-write price. Earlier prompt reminders and flag notices go with the history.
+- **An expired cache.** After an idle gap the provider writes the whole context again
+  at the cache-write price, and the contract is part of it. Without prompt caching,
+  every call pays the full input price.
+- **Subagents.** Each one starts with its own copy. Ten subagents carry ten.
+- **Saving a flagged file again.** The notice repeats on every save until the score
+  falls to the threshold.
+- **Strict.** The injected text is 15 tokens longer than `full`. The larger cost is
+  that it flags above 20, so more files get a notice and a rewrite.
+- **Rewrites.** The guard asks for at most two passes. A rewrite is billed as output
+  tokens, about the length of the passage rewritten.
+- **Running the detector.** Its JSON enters the context: 800 to 3,700 characters for
+  the short documents measured here.
+- **`/sloptrim` as a skill.** A deep rewrite loads `SKILL.md`, 21 KB of text, once.
+- **Never billed.** Code and config, a file written by a `Bash` command, plain text
+  over 512 KB, PDF and RTF. None of these is scored either.
+- **Headless code jobs.** `SLOPTRIM_MODE=off` brings every row to zero for that run.
+
+The hooks add about 0.1 s to a prompt and 0.5 s to a prose save on the Windows machine
+that recorded these numbers.
 
 ## What it cannot do
 
