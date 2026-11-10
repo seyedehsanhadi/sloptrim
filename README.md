@@ -87,6 +87,7 @@ because they are typographic habits.
 | Needs | Node for the hooks, Python 3.9 or newer for the detector, nothing else |
 | Suite | 222 Python tests and 83 hook checks, with CI configured for Linux, Windows and macOS, against Python 3.9 and 3.13 (macOS on 3.13) |
 | Does not see | A file written by a `Bash` command, which reaches disk without passing `Write` or `Edit` |
+| Context cost | About 1,400 tokens at session start and for each subagent in `full` (1,120 in `lite`, 1,415 in `strict`), plus a one-line reminder per prompt. `SLOPTRIM_MODE=off` makes it zero for a run |
 
 | Command | Effect |
 |---|---|
