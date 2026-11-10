@@ -12,7 +12,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- The README has a cost section. The contract was measured as billed input tokens with the plugin off against on: about 1,400 at session start in `full`, 1,415 in `strict` and 1,120 in `lite`. A subagent receives the same text, so it costs the same. The README said about 1,100 and 900 before.
+- The README gave the contract as about 1,100 tokens at session start and 900 per subagent. Measured as billed input tokens with the plugin off against on, it is about 1,400 in `full`, and a subagent receives the same text.
 
 ## [0.9.6] - 2026-10-22
 
