@@ -567,8 +567,6 @@ CANONICAL_SLOP = (
     r"if you blinked[^.,\n]{0,24},? you (?:might have |probably )?missed"
 )
 
-_BARE_X = r"\bx{3,}\b"
-
 PLACEHOLDER = (
     r"(?:\[(?:your|insert|add|enter|company name|client name|placeholder|todo|"
     r"tbd|tk|source url)\b[^\]\n]{0,40}\](?![(\[])|"
@@ -576,18 +574,18 @@ PLACEHOLDER = (
     r"\[city, ?state\](?![(\[])|"
     r"\[(?:manuscript id|lead vc firm|editor'?s last name|date of submission)"
     r"(?: [^\]\n]{0,20})?\](?![(\[])|"
-    # An all-caps bracket is usually a slot, [COMPANY] or [XX]. It is also how
-    # physics writes a forbidden emission line and how mathematics labels a
-    # term, so [NII], [O III], [CM1] and [N/2] are excluded. Every human
-    # document this rule wrongly flagged, all eight of them, was one of those,
-    # and the rule is decisive, so each was floored at 45.
-    r"(?-i:\[(?![A-Z][a-z]? ?(?:I{1,3}|IV|VI{0,3}|IX)\])"
-    r"(?![A-Z]{1,3}[0-9/][A-Z0-9/]{0,2}\])"
-    r"[A-Z][A-Z0-9 ._/-]{1,30}\])(?![(\[])|"
+    # An all-caps bracket is a slot only when it names one, [COMPANY] or [XX].
+    # Most are citation keys and labels: [RFC2119], [NII], [UNICODE]. Across
+    # 13,000 documents the unrestricted form matched 194 human texts and no
+    # machine slot, and the rule is decisive, so each was floored at 45.
+    r"(?-i:\[(?=[A-Z][A-Z0-9 ._/-]{1,30}\])(?:[A-Z0-9 ._/-]*[ ._/-])?"
+    r"(?:COMPANY|NAME|DATE|CITY|STATE|ADDRESS|EMAIL|PHONE|TITLE|POSITION|ROLE|"
+    r"CLIENT|PRODUCT|AMOUNT|NUMBER|LINK|URL|TOPIC|RECIPIENT|MANAGER|CANDIDATE|"
+    r"SENDER|SIGNATURE|SUBJECT|XX+)(?:[ ._/-][A-Z0-9 ._/-]*)?\])(?![(\[])|"
     # The double-brace form. Without it a rewrite could turn [Name] into
     # {{first_name}}, watch this rule stop firing, and read that as progress.
     r"\{\{ ?[a-z][a-z0-9 ._-]{1,30} ?\}\}|"
-    + _BARE_X + r"|\blorem ipsum\b)"
+    r"\bx{3,}\b|\blorem ipsum\b)"
 )
 
 CHATBOT_REF_MARKUP = (
@@ -1416,9 +1414,9 @@ def _decisive_families(result: dict, text: str) -> set:
     keys = {k for k in result if k in _SCORE_DECISIVE}
     if "62_invisible_chars" in keys and result["62_invisible_chars"]["count"] < 3:
         keys.discard("62_invisible_chars")
-    if "63_placeholder_text" in keys and (
-            result["63_placeholder_text"]["count"]
-            == len(re.findall(_BARE_X, text, re.IGNORECASE))):
+    if "63_placeholder_text" in keys and all(
+            re.fullmatch(r"x{3,}", m, re.IGNORECASE)
+            for m in regex_count(text, PLACEHOLDER)):
         keys.discard("63_placeholder_text")
     return {k.split("_", 1)[0] for k in keys}
 

@@ -3,6 +3,8 @@ import importlib.util
 import re
 from pathlib import Path
 
+import pytest
+
 REPO = Path(__file__).resolve().parents[1]
 
 HUMAN = (
@@ -38,7 +40,7 @@ EN = (
     "against it honestly instead of trusting the benchmark harness we had."
 )
 
-ZW = "​"
+ZW = "\u200b"
 LONG = HUMAN + "\n\n" + EN
 
 
@@ -126,5 +128,26 @@ def test_one_zero_width_character_does_not_corroborate_a_slot():
 
 def test_a_zero_width_character_with_a_homoglyph_stays_flagged():
     marked = (LONG.replace("The bridge", "The" + ZW + "bridge", 1)
-              .replace("quarried", "quаrried", 1))
+              .replace("quarried", "qu\u0430rried", 1))
     assert guarded(score(marked))
+
+
+def test_a_template_slot_that_contains_xxx_still_floors():
+    assert score(LONG + " Regards, [Your xxx]")["ai_tell_score"] >= 45
+
+
+def test_bracketed_citation_keys_are_not_template_slots():
+    cited = LONG + " The format follows [RFC2119] and [ISO-8601]; see [UNICODE] and [NII]."
+    result = detector().scan(cited)
+    assert "63_placeholder_text" not in result
+    assert not guarded(result["_metrics"])
+
+
+@pytest.mark.parametrize("slot", [
+    "[COMPANY]", "[COMPANY NAME]", "[YOUR NAME]", "[DEAR HIRING MANAGER]",
+    "[CANDIDATE]", "[TODO]", "[XX]", "[START DATE]",
+])
+def test_an_all_caps_slot_still_floors_a_long_document(slot):
+    result = detector().scan(LONG + " Regards, " + slot)
+    assert "63_placeholder_text" in result
+    assert result["_metrics"]["ai_tell_score"] >= 45
