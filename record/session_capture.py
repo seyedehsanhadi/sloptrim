@@ -74,7 +74,9 @@ def run(hook, payload, env_extra=None, cwd=None):
     cwd matters: `/sloptrim init` writes AGENTS.md next to wherever the agent is
     working, so recording it from the repository root drops the file in here.
     """
-    env = dict(os.environ, SLOPTRIM_DEFAULT_MODE="full", PYTHONIOENCODING="utf-8")
+    # SLOPTRIM_MODE beats the level saved on the recording machine, so the capture
+    # is the same wherever it is run.
+    env = dict(os.environ, SLOPTRIM_MODE="full", PYTHONIOENCODING="utf-8")
     env.update(env_extra or {})
     t0 = time.perf_counter()
     p = subprocess.run(["node", os.path.join(HOOKS, hook)],
@@ -145,11 +147,25 @@ def main():
     ev["file"] = "listing.docx"
     events.append(ev)
 
+    # The same words inside a source file. The guard scores prose and never code.
+    code = os.path.join(work, "listing.py")
+    nl = chr(10)
+    io.open(code, "w", encoding="utf-8", newline=nl).write(
+        "".join("# " + ln + nl for ln in draft_text.splitlines()) + "print(1)" + nl)
+    ev = run("sloptrim-guard.js",
+             {"session_id": sid, "tool_name": "Write",
+              "tool_input": {"file_path": code}})
+    ev["event"] = "PostToolUse"
+    ev["tool"] = "Write"
+    ev["file"] = "listing.py"
+    events.append(ev)
+
     ev = run("sloptrim-tracker.js", {"session_id": sid, "prompt": "/sloptrim init"},
              cwd=work)
     ev["event"] = "UserPromptSubmit"
     ev["command"] = "/sloptrim init"
     ev["wrote_agents_md"] = os.path.exists(os.path.join(work, "AGENTS.md"))
+    ev["wrote_cursor_rule"] = os.path.isdir(os.path.join(work, ".cursor", "rules"))
     events.append(ev)
 
     sys.path.insert(0, os.path.join(ROOT, "scripts"))

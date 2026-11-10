@@ -30,7 +30,7 @@ Python standard library only, no network, no model. Prose only, never code.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/demo-dark.svg">
-  <img src="assets/demo-light.svg" width="800" alt="A recorded session. The contract arrives at session start, again on the prompt, and again inside a subagent. A saved file scores 45 and its patterns are named. After the fix the next read is clean at 15. The same text saved as a .docx scores the same, read out of the zip. Every hook latency is measured.">
+  <img src="assets/demo-light.svg" width="800" alt="A recorded session. The contract arrives at session start and again inside a subagent, and each prompt gets a one-line reminder. A saved file scores 45 and its patterns are named. After the fix the next read is clean at 15. The same text saved as a .docx scores the same, read out of the zip, and inside a source file it is not scored. Every hook latency is measured.">
 </picture>
 
 <div align="center"><sub>A recorded session, not a mock-up. <a href="record/session_capture.py">record/session_capture.py</a> fires the real hooks with the payloads Claude Code sends and writes <a href="record/session.json">record/session.json</a>; <a href="record/anim.py">record/anim.py</a> draws it. The hook lines, the scores and the milliseconds come from that capture; the grey labels beside them are narration. The prose being scored is <a href="record/draft.md">record/draft.md</a>, a short piece written for the recording.</sub></div>

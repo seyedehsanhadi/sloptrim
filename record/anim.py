@@ -202,7 +202,7 @@ def build(theme, cap):
     t = {"session": 0.15, "prompt": 0.6, "sub": 1.05, "write": 1.5, "text": 1.7,
          "say": 2.5, "strike": 3.4, "drop": 5.0, "move": 5.3, "arrive": 5.8,
          "settle": 7.0, "edit": 7.2, "docx": 8.4, "docxsay": 9.0,
-         "init": 10.2, "local": 11.4}
+         "code": 9.8, "init": 10.8, "local": 12.0}
     SWEEP, GLIDE = 1.1, 0.9
 
     y = 60.0
@@ -220,6 +220,7 @@ def build(theme, cap):
     ys["edit"] = y; y += 32
     ys["docx"] = y; y += 18
     ys["docxsay"] = y; y += 32
+    ys["code"] = y; y += 32
     ys["init"] = y; y += 18
     ys["init2"] = y; y += 30
     ys["local"] = y; y += 26
@@ -313,7 +314,7 @@ def build(theme, cap):
                         "%s</text></g>" % (n, wid, tl))
 
     for k in ("session", "prompt", "sub", "write", "edit", "docx", "docxsay",
-              "init", "local"):
+              "code", "init", "local"):
         rise("r_" + k, t[k if k != "init2" else "init"])
     fade("fSay", t["say"], t["move"] + 0.3)
     css.append("@keyframes rail{0%,2%{transform:scaleY(0)}18%,100%{transform:scaleY(1)}}")
@@ -324,13 +325,13 @@ def build(theme, cap):
 
     o = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %.0f" width="%d" '
          'height="%.0f" role="img" aria-label="A recorded session. The contract arrives at '
-         'session start, again on the prompt, and again inside a subagent. A saved file scores '
+         'session start and again inside a subagent, and each prompt gets a one-line reminder. A saved file scores '
          '%d and its patterns are named. After the fix the next read is silent at %d. The same '
-         'text saved as a .docx scores the same, read out of the zip. Every hook latency is '
+         'text saved as a .docx scores the same, read out of the zip, and inside a source file it is not scored. Every hook latency is '
          'measured.">' % (W, h, W, h, sb["score"], sa["score"]),
          "<style>%s</style>" % "".join(css),
-         '<text x="%d" y="30" fill="%s" class="s t n">RECORDED SESSION &#183; NOTHING HERE WAS '
-         "ASKED FOR</text>" % (X, c["dim"]),
+         '<text x="%d" y="30" fill="%s" class="s t n">RECORDED SESSION &#183; THE HOOKS RUN '
+         "UNASKED</text>" % (X, c["dim"]),
          '<line x1="%d" y1="42" x2="%d" y2="42" stroke="%s"/>' % (X, W - PAD, c["hair"]),
          '<rect class="rail" x="%d" y="52" width="3" height="%.1f" rx="1.5" fill="%s"/>'
          % (RAIL, ys["local"] - 46, c["cut"]),
@@ -356,7 +357,7 @@ def build(theme, cap):
 
     o.append(row("session", c["cut"], "SessionStart", "the writing contract enters context",
                  ev[0]["ms"]))
-    o.append(row("prompt", c["user"], "&gt; " + esc(cap["prompt"]), "restated on every prompt",
+    o.append(row("prompt", c["user"], "&gt; " + esc(cap["prompt"]), "a one-line reminder on every prompt",
                  ev[1]["ms"]))
     o.append(row("sub", c["cut"], "SubagentStart", "a subagent gets the same contract",
                  ev[2]["ms"]))
@@ -377,12 +378,14 @@ def build(theme, cap):
     o.append('<g class="r_docxsay"><text x="%d" y="%.1f" fill="%s" class="s n">'
              "the same text saved as a .docx, read out of the zip</text></g>"
              % (X + 18, ys["docxsay"], c["dim"]))
-    o.append(row("init", c["user"], "&gt; /sloptrim init", "", ev[6]["ms"]))
+    o.append(row("code", c["add"], "Write(%s)" % ev[6]["file"],
+                 "code is never scored, the guard returns nothing", ev[6]["ms"]))
+    o.append(row("init", c["user"], "&gt; /sloptrim init", "", ev[7]["ms"]))
     o.append('<g class="r_init"><text x="%d" y="%.1f" fill="%s" class="s n">'
-             "prose contract written to AGENTS.md"
+             "prose contract written to AGENTS.md, and a Cursor rule"
              "</text></g>" % (X + 18, ys["init2"], c["dim"]))
-    o.append('<g class="r_local"><text x="%d" y="%.1f" fill="%s" class="s n">no network, no model, '
-             "Python standard library only &#183; Linux, Windows, macOS</text></g>"
+    o.append('<g class="r_local"><text x="%d" y="%.1f" fill="%s" class="s n">no network, no model &#183; '
+             "Node hooks, Python standard library detector &#183; Linux, Windows, macOS</text></g>"
              % (X, ys["local"], c["dim"]))
     o.append("</svg>")
     return "\n".join(o) + "\n"
