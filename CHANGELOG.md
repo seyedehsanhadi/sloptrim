@@ -2,6 +2,13 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- A lone zero-width character or a bare `xxx` no longer lifts a document to 45. A zero-width space comes with every copy from a rendered web page, and `xxx` is how people redact a name. Invisible characters now count as decisive evidence from three up, and `xxx` counts only beside a real template slot. One of them still adds its ordinary points, is still reported and is still removed by `--clean`. Other markers, such as `[Your Name]`, an AI tracking link or a chatbot citation token, behave as before.
+- Double spaces, tabs and non-breaking spaces between words no longer hide phrase patterns. They fold to one space before matching, and the character layer still reports them.
+
 ## [0.9.6] - 2026-10-22
 
 ### Added

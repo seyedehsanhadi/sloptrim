@@ -214,7 +214,7 @@ When working on a specific pattern, **read `references/patterns.md` and jump to 
 python "$DETECT" input.txt        # pass a path (works on all shells)
 ```
 
-It emits JSON: pattern IDs with counts and samples, a `_metrics` block (rhythm statistics, contraction and passive ratios, character-layer counts), and **`ai_tell_score` (0-100)** with a band (`clean` / `light tells` / `mixed` / `heavy tells` / `pervasive tells`). The score weighs pattern diversity over raw density, floors when the character layer finds codepoints that carry no meaning in the text, and ignores copy-editing preferences. It is a triage heuristic, not a calibrated classifier.
+It emits JSON: pattern IDs with counts and samples, a `_metrics` block (rhythm statistics, contraction and passive ratios, character-layer counts), and **`ai_tell_score` (0-100)** with a band (`clean` / `light tells` / `mixed` / `heavy tells` / `pervasive tells`). The score weighs pattern diversity over raw density, floors when the character layer finds three or more codepoints that carry no meaning in the text, and ignores copy-editing preferences. It is a triage heuristic, not a calibrated classifier.
 
 A score describes the writing in front of it. It is not a judgement about who or what wrote a document, it cannot support one, and it must never be used to accuse a person of anything. See ETHICS.md. The 9 catalogue entries with no detector behind them (7, 9, 28, 29, 43, 45, 49, 52, 53) are worked by reading; even machine-checked ones deserve a reading pass for what the regex misses.
 
