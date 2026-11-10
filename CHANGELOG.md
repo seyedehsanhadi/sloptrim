@@ -6,13 +6,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
-- A lone zero-width character or a bare `xxx` no longer lifts a document to 45. A zero-width space often rides along when text is copied from a web page, and `xxx` is how people redact a name. Invisible characters now count as decisive evidence from three up, and `xxx` counts only beside a real template slot. One of them still adds its ordinary points, is still reported and is still removed by `--clean`. Other markers, such as `[Your Name]`, an AI tracking link or a chatbot citation token, behave as before.
-- Double spaces, tabs and non-breaking spaces between words no longer hide phrase patterns. They fold to one space before matching, and the character layer still reports them.
-- An all-caps bracket counts as a template slot only when it names one, such as `[COMPANY]`, `[YOUR NAME]` or `[XX]`. Citation keys and labels such as `[RFC2119]`, `[UNICODE]` and `[USEPA]` were read as slots before, and each one lifted its document to 45. Of 250 human-written RFCs, 189 were flagged at the default threshold; 2 are now. Mixed-case slots such as `[Your Name]` are unchanged.
+- One stray zero-width character or a bare `xxx` no longer lifts a document to 45. Invisible characters count as decisive from three up; `xxx` counts only beside a real template slot. Both are still reported and still removed by `--clean`.
+- All-caps citation keys such as `[RFC2119]` and `[USEPA]` are no longer read as template slots. Of 250 human-written RFCs, 189 were flagged before and 2 are now. `[COMPANY]`, `[YOUR NAME]` and `[Your Name]` still count.
+- Double spaces, tabs and non-breaking spaces between words no longer hide phrase patterns.
 
 ### Changed
 
-- The README gave the contract as about 1,100 tokens at session start and 900 per subagent. Measured as billed input tokens with the plugin off against on, it is about 1,400 in `full`, and a subagent receives the same text.
+- The README now gives the contract as about 1,400 tokens at session start and the same for each subagent, measured as billed input. It said 1,100 and 900.
+- The demo session was re-recorded on this version and its labels corrected.
 
 ## [0.9.6] - 2026-10-22
 
