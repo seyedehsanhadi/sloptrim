@@ -567,6 +567,8 @@ CANONICAL_SLOP = (
     r"if you blinked[^.,\n]{0,24},? you (?:might have |probably )?missed"
 )
 
+_BARE_X = r"\bx{3,}\b"
+
 PLACEHOLDER = (
     r"(?:\[(?:your|insert|add|enter|company name|client name|placeholder|todo|"
     r"tbd|tk|source url)\b[^\]\n]{0,40}\](?![(\[])|"
@@ -585,7 +587,7 @@ PLACEHOLDER = (
     # The double-brace form. Without it a rewrite could turn [Name] into
     # {{first_name}}, watch this rule stop firing, and read that as progress.
     r"\{\{ ?[a-z][a-z0-9 ._-]{1,30} ?\}\}|"
-    r"\bx{3,}\b|\blorem ipsum\b)"
+    + _BARE_X + r"|\blorem ipsum\b)"
 )
 
 CHATBOT_REF_MARKUP = (
@@ -1410,6 +1412,17 @@ def _band(score: float) -> str:
     return "pervasive tells"
 
 
+def _decisive_families(result: dict, text: str) -> set:
+    keys = {k for k in result if k in _SCORE_DECISIVE}
+    if "62_invisible_chars" in keys and result["62_invisible_chars"]["count"] < 3:
+        keys.discard("62_invisible_chars")
+    if "63_placeholder_text" in keys and (
+            result["63_placeholder_text"]["count"]
+            == len(re.findall(_BARE_X, text, re.IGNORECASE))):
+        keys.discard("63_placeholder_text")
+    return {k.split("_", 1)[0] for k in keys}
+
+
 def ai_tell_score(result: dict, text: str, burst: dict, para_mono: dict, punct: dict,
                   readability: dict | None = None) -> dict:
     words = max(count_words(text), 1)
@@ -1468,8 +1481,7 @@ def ai_tell_score(result: dict, text: str, burst: dict, para_mono: dict, punct: 
     scored = {int(k.split("_", 1)[0]) for k in result
               if not k.startswith("_") and k not in _SCORE_REPORT_ONLY
               and k not in _SCORE_STYLE_ONLY and k.split("_", 1)[0].isdigit()}
-    decisive_hits = len({k.split("_", 1)[0] for k in result
-                         if k in _SCORE_DECISIVE})
+    decisive_hits = len(_decisive_families(result, text))
     thin = score_confidence(words, len(scored))["confidence"] in ("none", "low")
     if decisive_hits >= 2:
         # Two distinct decisive families corroborate each other.
