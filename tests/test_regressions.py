@@ -141,3 +141,12 @@ def test_init_while_off_writes_nothing(tmp_path):
     assert "No files written" in json.loads(r.stdout)["reason"]
     assert not (tmp_path / "AGENTS.md").exists()
     assert not (tmp_path / ".cursor").exists()
+
+
+@pytest.mark.parametrize("gap", ["  ", "\u00a0", "   \u00a0 "], ids=["double", "nbsp", "mixed"])
+def test_spacing_between_words_cannot_hide_phrase_patterns(gap):
+    plain = detect.scan(SLOP)
+    spaced = detect.scan(SLOP.replace(" ", gap))
+    keys = lambda r: {k for k in r if not k.startswith("_") and k != "67_nonstandard_spaces"}
+    assert keys(spaced) == keys(plain)
+    assert spaced["_metrics"]["ai_tell_score"] == plain["_metrics"]["ai_tell_score"]
