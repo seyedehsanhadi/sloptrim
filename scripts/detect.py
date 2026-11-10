@@ -1741,7 +1741,7 @@ def scan(raw_text: str, syntax: str = "markdown") -> dict:
     )
     unfolded = text
     text = text.replace("’", "'")
-    text = re.sub(r"(?<=\S)[ \xa0]{2,}(?=\S)|(?<=\S)\xa0(?=\S)", " ", text)
+    text = re.sub(r"(?<=\S)[ \t\xa0]{2,}(?=\S)|(?<=\S)[\t\xa0](?=\S)", " ", text)
 
     simple = [
         ("16_ing_tail", ING_TAIL, "Superficial -ing tail clauses"),

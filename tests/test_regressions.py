@@ -143,7 +143,7 @@ def test_init_while_off_writes_nothing(tmp_path):
     assert not (tmp_path / ".cursor").exists()
 
 
-@pytest.mark.parametrize("gap", ["  ", "\u00a0", "   \u00a0 "], ids=["double", "nbsp", "mixed"])
+@pytest.mark.parametrize("gap", ["  ", "\u00a0", "   \u00a0 ", "\t"], ids=["double", "nbsp", "mixed", "tab"])
 def test_spacing_between_words_cannot_hide_phrase_patterns(gap):
     plain = detect.scan(SLOP)
     spaced = detect.scan(SLOP.replace(" ", gap))
